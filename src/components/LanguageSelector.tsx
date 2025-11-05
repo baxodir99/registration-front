@@ -98,7 +98,9 @@ const LanguageSelector: React.FC = () => {
               mt: 0,
               border: `1px solid ${modernColors.gray[200]}`,
               boxShadow: "none",
-              py: 0,
+              "& .MuiList-root": {
+                py: 0,
+              },
             },
           },
         }}
@@ -108,9 +110,8 @@ const LanguageSelector: React.FC = () => {
             key={language.code}
             value={language.code}
             sx={{
-              py: 0,
+              py: 1.5,
               px: 2,
-              minHeight: "40px",
               "&:hover": {
                 backgroundColor: modernColors.gray[50],
               },
