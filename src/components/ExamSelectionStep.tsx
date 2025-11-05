@@ -695,19 +695,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
             <Skeleton variant="rectangular" height={320} sx={{ borderRadius: modernBorderRadius.xs }} />
           ) : (
             <>
-              {/* Debug info */}
-              <Box sx={{
-                mb: { xs: 2, sm: 3, md: 4 },
-                p: { xs: 2, sm: 2.5, md: 3 },
-                backgroundColor: modernColors.gray[50],
-                borderRadius: modernBorderRadius.md
-              }}>
-                <Typography variant="caption">
-                  {t('exam_selection.debug_exam_dates')}: {examDates.length}, {t('exam_selection.debug_available')}: {availableDates.length}
-                  {selectedDate && `, ${t('exam_selection.debug_selected')}: ${selectedDate.format('YYYY-MM-DD')}`}
-                </Typography>
-              </Box>
-
+              {/* Calendar Section */}
               <SurfaceCard surfaceVariant="elevated" sx={{
                 p: { xs: 2, sm: 3, md: 4, lg: 6 },
                 width: '100%',
