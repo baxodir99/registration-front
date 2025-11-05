@@ -277,23 +277,23 @@ export const createModernTheme = (): ThemeOptions => ({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: borderRadius.xl,
+          borderRadius: borderRadius.xs,
           border: `1px solid ${colors.gray[200]}`,
           backgroundColor: colors.surface.primary,
           boxShadow: 'none',
           transition: 'all 0.2s ease-in-out',
           '&:hover': {
-            borderColor: colors.gray[300],
+            borderColor: colors.gray[200],
           },
         },
       },
     },
-    
+
     // Paper Component - Clean surface
     MuiPaper: {
       styleOverrides: {
         root: {
-          borderRadius: borderRadius.xl,
+          borderRadius: borderRadius.xs,
           backgroundColor: colors.surface.primary,
           border: `1px solid ${colors.gray[200]}`,
           boxShadow: 'none',
@@ -307,42 +307,42 @@ export const createModernTheme = (): ThemeOptions => ({
         },
         elevation2: {
           boxShadow: 'none',
-          border: `1px solid ${colors.gray[300]}`,
+          border: `1px solid ${colors.gray[200]}`,
         },
         elevation3: {
           boxShadow: 'none',
-          border: `1px solid ${colors.gray[300]}`,
+          border: `1px solid ${colors.gray[200]}`,
           backgroundColor: colors.surface.primary,
         },
       },
     },
-    
+
     // TextField Component - Modern input styling
     MuiTextField: {
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
-            borderRadius: borderRadius.sm,
+            borderRadius: borderRadius.xs,
             backgroundColor: colors.surface.primary,
             '& fieldset': {
-              borderColor: colors.gray[300],
+              borderColor: colors.gray[200],
               borderWidth: 1,
             },
             '&:hover fieldset': {
-              borderColor: colors.gray[400],
+              borderColor: colors.gray[300],
             },
             '&.Mui-focused fieldset': {
-              borderColor: colors.primary[600],
-              borderWidth: 2,
+              borderColor: colors.primary[500],
+              borderWidth: 1,
             },
             '&.Mui-error fieldset': {
               borderColor: colors.semantic.error,
             },
           },
           '& .MuiInputLabel-root': {
-            color: colors.gray[600],
+            color: colors.gray[500],
             '&.Mui-focused': {
-              color: colors.primary[600],
+              color: colors.primary[500],
             },
           },
         },
@@ -353,32 +353,32 @@ export const createModernTheme = (): ThemeOptions => ({
     MuiSelect: {
       styleOverrides: {
         root: {
-          borderRadius: borderRadius.sm,
+          borderRadius: borderRadius.xs,
           '& .MuiOutlinedInput-notchedOutline': {
-            borderColor: colors.gray[300],
+            borderColor: colors.gray[200],
           },
           '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: colors.gray[400],
+            borderColor: colors.gray[300],
           },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: colors.primary[600],
-            borderWidth: 2,
+            borderColor: colors.primary[500],
+            borderWidth: 1,
           },
         },
       },
     },
-    
+
     // Chip Component - Modern tag styling
     MuiChip: {
       styleOverrides: {
         root: {
-          borderRadius: borderRadius.sm,
+          borderRadius: borderRadius.xs,
           fontSize: '13px',
           fontWeight: 500,
           border: `1px solid ${colors.gray[200]}`,
         },
         filled: {
-          backgroundColor: colors.gray[100],
+          backgroundColor: colors.surface.secondary,
           color: colors.gray[700],
           '&.MuiChip-colorPrimary': {
             backgroundColor: colors.primary[100],
@@ -387,9 +387,9 @@ export const createModernTheme = (): ThemeOptions => ({
           },
         },
         outlined: {
-          borderColor: colors.gray[300],
+          borderColor: colors.gray[200],
           '&.MuiChip-colorPrimary': {
-            borderColor: colors.primary[300],
+            borderColor: colors.primary[200],
             color: colors.primary[600],
           },
         },
@@ -400,14 +400,14 @@ export const createModernTheme = (): ThemeOptions => ({
     MuiAlert: {
       styleOverrides: {
         root: {
-          borderRadius: borderRadius.lg,
+          borderRadius: borderRadius.xs,
           border: '1px solid',
           boxShadow: 'none',
         },
         standardSuccess: {
           backgroundColor: colors.surface.primary,
           borderColor: colors.semantic.success,
-          color: colors.gray[800],
+          color: colors.gray[700],
           '& .MuiAlert-icon': {
             color: colors.semantic.success,
           },
@@ -415,7 +415,7 @@ export const createModernTheme = (): ThemeOptions => ({
         standardError: {
           backgroundColor: colors.surface.primary,
           borderColor: colors.semantic.error,
-          color: colors.gray[800],
+          color: colors.gray[700],
           '& .MuiAlert-icon': {
             color: colors.semantic.error,
           },
@@ -423,7 +423,7 @@ export const createModernTheme = (): ThemeOptions => ({
         standardWarning: {
           backgroundColor: colors.surface.primary,
           borderColor: colors.semantic.warning,
-          color: colors.gray[800],
+          color: colors.gray[700],
           '& .MuiAlert-icon': {
             color: colors.semantic.warning,
           },
@@ -431,7 +431,7 @@ export const createModernTheme = (): ThemeOptions => ({
         standardInfo: {
           backgroundColor: colors.surface.primary,
           borderColor: colors.semantic.info,
-          color: colors.gray[800],
+          color: colors.gray[700],
           '& .MuiAlert-icon': {
             color: colors.semantic.info,
           },
