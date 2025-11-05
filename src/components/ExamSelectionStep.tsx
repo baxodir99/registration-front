@@ -1048,45 +1048,46 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
                     if (selectedExamDate) {
                       return (
                         <Box>
-                          <Typography variant="body2" sx={{ color: modernColors.gray[700], mb: 1 }}>
-                            <strong>{t('exam_selection.availability')}:</strong> {selectedExamDate.booked}/{selectedExamDate.capacity} 
-                            ({selectedExamDate.availability_percentage.toFixed(1)}%)
-                          </Typography>
-                          <Box sx={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            gap: 2, 
-                            mt: 1 
-                          }}>
-                            <Box sx={{ 
-                              width: '120px', 
-                              height: '8px', 
-                              backgroundColor: modernColors.gray[200],
-                              borderRadius: modernBorderRadius.sm + 'px',
-                              overflow: 'hidden'
-                            }}>
-                              <Box sx={{ 
-                                width: `${selectedExamDate.availability_percentage}%`,
-                                height: '100%',
-                                backgroundColor: selectedExamDate.availability_status === 'full' 
-                                  ? AVAILABILITY_COLORS.full.main 
-                                  : selectedExamDate.availability_status === 'half' 
-                                    ? AVAILABILITY_COLORS.half.main 
+                          {/* Only show availability info when not full */}
+                          {selectedExamDate.availability_status !== 'full' && (
+                            <>
+                              <Typography variant="body2" sx={{ color: modernColors.gray[700], mb: 1 }}>
+                                <strong>{t('exam_selection.availability')}:</strong> {selectedExamDate.booked}/{selectedExamDate.capacity}
+                                ({selectedExamDate.availability_percentage.toFixed(1)}%)
+                              </Typography>
+                              <Box sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 2,
+                                mt: 1
+                              }}>
+                                <Box sx={{
+                                  width: '120px',
+                                  height: '8px',
+                                  backgroundColor: modernColors.gray[200],
+                                  borderRadius: modernBorderRadius.sm + 'px',
+                                  overflow: 'hidden'
+                                }}>
+                                  <Box sx={{
+                                    width: `${selectedExamDate.availability_percentage}%`,
+                                    height: '100%',
+                                    backgroundColor: selectedExamDate.availability_status === 'half'
+                                      ? AVAILABILITY_COLORS.half.main
+                                      : AVAILABILITY_COLORS.available.main,
+                                    transition: 'width 0.3s ease'
+                                  }} />
+                                </Box>
+                                <Typography variant="body2" sx={{
+                                  color: selectedExamDate.availability_status === 'half'
+                                    ? AVAILABILITY_COLORS.half.main
                                     : AVAILABILITY_COLORS.available.main,
-                                transition: 'width 0.3s ease'
-                              }} />
-                            </Box>
-                            <Typography variant="body2" sx={{ 
-                              color: selectedExamDate.availability_status === 'full' 
-                                ? AVAILABILITY_COLORS.full.main 
-                                : selectedExamDate.availability_status === 'half' 
-                                  ? AVAILABILITY_COLORS.half.main 
-                                  : AVAILABILITY_COLORS.available.main,
-                              fontWeight: 600
-                            }}>
-                              {t(`exam_selection.${selectedExamDate.availability_status}`)}
-                            </Typography>
-                          </Box>
+                                  fontWeight: 600
+                                }}>
+                                  {t(`exam_selection.${selectedExamDate.availability_status}`)}
+                                </Typography>
+                              </Box>
+                            </>
+                          )}
 
                           {/* Warning message when date is full */}
                           {selectedExamDate.availability_status === 'full' && (
