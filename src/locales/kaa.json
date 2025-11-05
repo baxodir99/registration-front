@@ -1,0 +1,113 @@
+{
+  "common": {
+    "next": "Keyingi",
+    "continue": "Dawam etiw",
+    "previous": "Aldınǵı",
+    "cancel": "Biykar etiwge",
+    "save": "Saqlaw",
+    "loading": "Júklenbekte...",
+    "error": "Qátelik júz berdi",
+    "success": "Tabıslı",
+    "required": "Májbúriy maydan",
+    "select": "Tańlań",
+    "upload": "Júkleý",
+    "download": "Júkleniwge",
+    "submit": "Jiberiwge",
+    "confirm": "Tasdıqlaw"
+  },
+  "header": {
+    "title": "Bilim hám málekelerdi baǵalaý aǵentliǵi qasındaǵı Ilmıý-oqıw amalıý merkezi\nXalqaro imtıxanlarǵa dizimnen ótiw elektron platforması",
+    "language": "Til"
+  },
+  "steps": {
+    "exam_selection": "Imtıxan tańlaw",
+    "personalization": "Jeke málimatlardı",
+    "user_info": "Paydalanıwshı málimatlardı",
+    "registration_details": "Diziminen ótiw tafsilatlardı",
+    "confirmation": "Tasdıqlaw",
+    "payment": "Tólem"
+  },
+  "exam_selection": {
+    "title": "Imtıxan málimatlardın tańlań",
+    "exam_type": "Imtıxan túri",
+    "exam_type_placeholder": "Imtıxan túrin tańlań",
+    "type": "Túr",
+    "type_placeholder": "Túrin tańlań",
+    "region": "Óstan",
+    "region_placeholder": "Óstanı tańlań",
+    "exam_name": "Imtıxan atı",
+    "exam_name_placeholder": "Imtıxan atın tańlań",
+    "exam": "Imtıxan",
+    "exam_placeholder": "Imtıxannı tańlań",
+    "exam_date": "Imtıxan kúni",
+    "exam_date_placeholder": "Imtıxan kúnin tańlań",
+    "amount": "Baǵası"
+  },
+  "personalization": {
+    "title": "Jeke málimatlardı tasdıqlań",
+    "pnfl": "PNFL",
+    "pnfl_placeholder": "14 xanalı PNFL nómirin kiritiń",
+    "passport": "Pasport seriyası hám nómiri",
+    "passport_placeholder": "Mısal: AB1234567",
+    "check": "Tekseriwge",
+    "pnfl_invalid": "PNFL 14 raqamnan ibarat bolıwı kerek",
+    "passport_invalid": "Pasport formatı durıs emes (mısal: AB1234567)"
+  },
+  "user_info": {
+    "title": "Paydalanıwshı málimatlardı",
+    "full_name": "Tolıq atı",
+    "passport_number": "Pasport nómiri",
+    "birth_date": "Túwılǵan kúni",
+    "birth_place": "Túwılǵan jeri",
+    "nationality": "Milleti",
+    "sex": "Jınısı",
+    "doc_give_place": "Pasport berilgen jer",
+    "doc_valid_period": "Amal qılıw muddeti"
+  },
+  "registration_details": {
+    "title": "Diziminen ótiw tafsilatlardı",
+    "phone": "Telefon nómiri",
+    "phone_placeholder": "+998901234567",
+    "email": "Email mánzili",
+    "email_placeholder": "email@example.com",
+    "city": "Qala",
+    "city_placeholder": "Qalańızdı kiritiń",
+    "passport_file": "Pasport súwreti yaki fayl",
+    "passport_file_help": "JPG, PNG yaki PDF fayl (maksimal 20MB)",
+    "terms": "Jámiyet ofertası shartlardın qabıl qılaman",
+    "terms_required": "Oferta shartlardın qabıl qılıw májbúriy",
+    "phone_invalid": "Telefon nómiri formatı durıs emes",
+    "email_invalid": "Email mánzili formatı durıs emes",
+    "file_too_large": "Fayl hajmı 20MB dan asıp ketpewi kerek",
+    "file_invalid_type": "Tek qana JPG, PNG yaki PDF fayl júklewge boladı"
+  },
+  "confirmation": {
+    "title": "Málimatlardı tasdıqlań",
+    "exam_info": "Imtıxan málimatlardı",
+    "personal_info": "Jeke málimatlardı",
+    "contact_info": "Baylanıs málimatlardı",
+    "payment_amount": "Tólem miqdardı",
+    "confirm_registration": "Diziminen ótiwin tasdıqlaw"
+  },
+  "payment": {
+    "title": "Tólem",
+    "invoice_created": "Hesap-kitap jaratıldı",
+    "invoice_number": "Hesap-kitap nómiri (Invoys nómiri)",
+    "amount": "Miqdardı",
+    "pay_now": "Házir tóleý",
+    "payment_instructions": "Tólem ushın túýmeni basıń hám baǵıtlanǵan bette tólemdi ámelge asırıń",
+    "exam_info_title": "Imtihan maǵlıwmatları",
+    "exam_info_description": "Imtihan manzili, kúni hám waqtı haqqındaǵı barlıq maǵlıwmatları bar hújjet.",
+    "download_exam_info": "Imtihan maǵlıwmatların júkleý",
+    "exam_info_note": "Bul hújjetti saqlań hám imtihan kúni óziń benen alıp barıń",
+    "new_registration": "Jańa diziminen ótiý"
+  },
+  "messages": {
+    "data_saved": "Málimatlardı saqlandı",
+    "personalization_success": "Jeke málimatlardı tabıslı tasdıqlandı",
+    "personalization_failed": "Jeke málimatlardı tasdıqlanmadı",
+    "registration_success": "Diziminen ótiw tabıslı tamamlandı",
+    "registration_failed": "Diziminen ótiw waqtında qátelik júz berdi",
+    "invalid_data": "Kiritilgen málimatlardı durıs emes"
+  }
+}

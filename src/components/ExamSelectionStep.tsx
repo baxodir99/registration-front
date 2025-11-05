@@ -440,7 +440,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
       </Typography>
 
       {error && (
-        <Alert severity="error" sx={{ mb: { xs: 2, sm: 3, md: 4 }, borderRadius: modernBorderRadius.md }}>
+        <Alert severity="error" sx={{ mb: { xs: 2, sm: 3, md: 4 }, borderRadius: modernBorderRadius.xs }}>
           {error}
         </Alert>
       )}
