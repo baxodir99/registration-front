@@ -25,11 +25,14 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-    console.log('API Request:', config.method?.toUpperCase(), config.url);
+    // Request logging removed for production
     return config;
   },
   (error) => {
-    console.error('API Request Error:', error);
+    // Only log errors in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error('API Request Error:', error);
+    }
     return Promise.reject(error);
   }
 );
@@ -37,11 +40,14 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   (response) => {
-    console.log('API Response:', response.status, response.data);
+    // Response logging removed for production
     return response;
   },
   (error) => {
-    console.error('API Response Error:', error.response?.data || error.message);
+    // Only log errors in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error('API Response Error:', error.response?.data || error.message);
+    }
     return Promise.reject(error);
   }
 );
