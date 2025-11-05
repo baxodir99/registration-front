@@ -3,7 +3,7 @@ import { Button, ButtonProps } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { modernBorderRadius, modernColors } from '../../theme/modernTheme';
 
-// Modern Outlined Button - Clean flat design
+// Modern Outlined Button - Uses global theme colors and border radius
 const ModernOutlinedButton = styled(Button)(({ theme }) => ({
   borderRadius: modernBorderRadius.xs,
   textTransform: 'none',
@@ -11,28 +11,26 @@ const ModernOutlinedButton = styled(Button)(({ theme }) => ({
   fontSize: '14px',
   lineHeight: '20px',
   letterSpacing: '0em',
-  paddingTop: 12,
-  paddingBottom: 12,
+  paddingTop: 14,
+  paddingBottom: 14,
   paddingLeft: 24,
   paddingRight: 24,
-  minHeight: 44,
+  minHeight: 48,
   borderWidth: 1,
   borderColor: modernColors.gray[300],
-  color: theme.palette.primary.main,
-  backgroundColor: 'transparent',
+  color: modernColors.gray[700],
+  backgroundColor: modernColors.surface.primary,
   transition: 'all 0.2s ease-in-out',
   '&:hover': {
-    backgroundColor: theme.palette.primary.main + '08',
-    borderColor: theme.palette.primary.main,
+    backgroundColor: modernColors.gray[50],
+    borderColor: modernColors.gray[400],
     transform: 'translateY(-1px)',
   },
   '&:active': {
     transform: 'translateY(0px)',
   },
   '&:focus': {
-    outline: `2px solid ${theme.palette.primary.main}`,
-    outlineOffset: 2,
-    borderColor: theme.palette.primary.main,
+    boxShadow: 'none',
   },
   '&:disabled': {
     borderColor: modernColors.gray[200],

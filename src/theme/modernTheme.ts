@@ -220,13 +220,13 @@ export const createModernTheme = (): ThemeOptions => ({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: borderRadius.md,
+          borderRadius: borderRadius.xs,
           textTransform: 'none',
           fontWeight: 500,
           fontSize: '14px',
           lineHeight: '20px',
-          padding: '12px 24px',
-          minHeight: 44,
+          padding: '14px 24px',
+          minHeight: 48,
           boxShadow: 'none',
           '&:hover': {
             boxShadow: 'none',

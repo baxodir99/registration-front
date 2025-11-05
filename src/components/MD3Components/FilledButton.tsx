@@ -3,7 +3,7 @@ import { Button, ButtonProps } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { modernBorderRadius, modernColors } from '../../theme/modernTheme';
 
-// Modern Filled Button - Clean flat design
+// Modern Filled Button - Uses global theme colors and border radius
 const ModernFilledButton = styled(Button)(({ theme }) => ({
   borderRadius: modernBorderRadius.xs,
   textTransform: 'none',
@@ -11,31 +11,32 @@ const ModernFilledButton = styled(Button)(({ theme }) => ({
   fontSize: '14px',
   lineHeight: '20px',
   letterSpacing: '0em',
-  paddingTop: 12,
-  paddingBottom: 12,
+  paddingTop: 14,
+  paddingBottom: 14,
   paddingLeft: 24,
   paddingRight: 24,
-  minHeight: 44,
-  boxShadow: 'none', // NO SHADOWS
+  minHeight: 48,
+  boxShadow: 'none',
   transition: 'all 0.2s ease-in-out',
-  backgroundColor: theme.palette.primary.main,
-  color: theme.palette.primary.contrastText,
+  backgroundColor: modernColors.primary[600],
+  color: '#FFFFFF',
+  border: `1px solid ${modernColors.primary[600]}`,
   '&:hover': {
-    backgroundColor: theme.palette.primary.dark,
-    boxShadow: 'none', // NO SHADOWS
+    backgroundColor: modernColors.primary[700],
+    borderColor: modernColors.primary[700],
+    boxShadow: 'none',
     transform: 'translateY(-1px)',
   },
   '&:active': {
     transform: 'translateY(0px)',
   },
   '&:focus': {
-    outline: `2px solid ${theme.palette.primary.main}`,
-    outlineOffset: 2,
     boxShadow: 'none',
   },
   '&:disabled': {
     backgroundColor: modernColors.gray[200],
     color: modernColors.gray[400],
+    borderColor: modernColors.gray[200],
     boxShadow: 'none',
     transform: 'none',
     cursor: 'not-allowed',
