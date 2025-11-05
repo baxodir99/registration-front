@@ -29,8 +29,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({ currentStep, onOpenResetDialog })
             border: `1px solid ${modernColors.gray[200]}`,
             borderTopLeftRadius: 0,
             borderTopRightRadius: 0,
-            borderBottomLeftRadius: modernBorderRadius.xs,
-            borderBottomRightRadius: modernBorderRadius.xs,
+            borderBottomLeftRadius: modernBorderRadius.md,
+            borderBottomRightRadius: modernBorderRadius.md,
           }}
         >
           <Box
