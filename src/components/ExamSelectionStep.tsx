@@ -275,11 +275,11 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
         console.log('Set examDate to:', matchingExamDate.id);
       } else {
         formik.setFieldValue('examDate', '');
-        console.log('No matching exam date, set to 0');
+        console.log('No matching exam date, cleared examDate');
       }
     } else {
-      formik.setFieldValue('examDate', 0);
-      console.log('Date is null, set examDate to 0');
+      formik.setFieldValue('examDate', '');
+      console.log('Date is null, cleared examDate');
     }
   };
 
