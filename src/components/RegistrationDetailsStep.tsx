@@ -203,7 +203,9 @@ const RegistrationDetailsStep: React.FC<RegistrationDetailsStepProps> = ({
         <Button
           variant="outlined"
           onClick={onPrevious}
-          fullWidth={{ xs: true, sm: false }}
+          sx={{
+            width: { xs: '100%', sm: 'auto' },
+          }}
         >
           {t('common.previous')}
         </Button>
@@ -212,7 +214,9 @@ const RegistrationDetailsStep: React.FC<RegistrationDetailsStepProps> = ({
           type="submit"
           variant="contained"
           disabled={!formik.isValid || !formik.values.terms_accepted}
-          fullWidth={{ xs: true, sm: false }}
+          sx={{
+            width: { xs: '100%', sm: 'auto' },
+          }}
         >
           {t('common.next')}
         </Button>

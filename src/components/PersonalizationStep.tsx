@@ -317,7 +317,9 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
         <OutlinedButton
           onClick={onPrevious}
           disabled={loading}
-          fullWidth={{ xs: true, sm: false }}
+          sx={{
+            width: { xs: '100%', sm: 'auto' },
+          }}
         >
           {t('common.previous')}
         </OutlinedButton>
@@ -326,8 +328,8 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
           <FilledButton
             onClick={handleNext}
             disabled={loading}
-            fullWidth={{ xs: true, sm: false }}
             sx={{
+              width: { xs: '100%', sm: 'auto' },
               animation: 'pulse 2s infinite',
               '@keyframes pulse': {
                 '0%': { transform: 'scale(1)' },

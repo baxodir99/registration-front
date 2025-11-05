@@ -304,12 +304,12 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
           variant="outlined"
           onClick={onPrevious}
           disabled={loading}
-          fullWidth={{ xs: true, sm: false }}
           sx={{
             borderRadius: modernBorderRadius.lg + 'px',
             textTransform: 'none',
             px: { xs: 2, sm: 2.5, md: 3 },
             py: { xs: 1.2, sm: 1.4, md: 1.5 },
+            width: { xs: '100%', sm: 'auto' },
           }}
         >
           {t('common.previous')}
@@ -327,12 +327,12 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
             </Box>
           }
           size="large"
-          fullWidth={{ xs: true, sm: false }}
           sx={{
             borderRadius: modernBorderRadius.lg + 'px',
             textTransform: 'none',
             px: { xs: 2, sm: 2.5, md: 3 },
             py: { xs: 1.2, sm: 1.4, md: 1.5 },
+            width: { xs: '100%', sm: 'auto' },
           }}
         >
           {t('confirmation.confirm_registration')}

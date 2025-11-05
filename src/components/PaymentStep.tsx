@@ -218,10 +218,10 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
                 variant="text"
                 onClick={handleDownloadInfo}
                 startIcon={<DownloadIcon />}
-                fullWidth={{ xs: true, sm: false }}
                 sx={{
                   color: modernColors.primary[600],
                   fontSize: { xs: '13px', sm: '14px' },
+                  width: { xs: '100%', sm: 'auto' },
                   '&:hover': {
                     backgroundColor: modernColors.primary[50],
                   }
@@ -289,7 +289,6 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
           variant="outlined"
           onClick={onNewRegistration}
           size="large"
-          fullWidth={{ xs: true, sm: false }}
           sx={{
             px: { xs: 4, sm: 6, md: 8 },
             py: { xs: 1.2, sm: 1.4, md: 1.5 },
@@ -297,6 +296,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
             borderColor: modernColors.gray[400],
             color: modernColors.gray[700],
             fontSize: { xs: '14px', sm: '15px' },
+            width: { xs: '100%', sm: 'auto' },
             '&:hover': {
               borderColor: modernColors.gray[600],
               backgroundColor: modernColors.gray[50],
