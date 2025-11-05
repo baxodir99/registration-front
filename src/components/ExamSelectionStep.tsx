@@ -10,7 +10,6 @@ import {
   Alert,
   CardContent,
   Chip,
-  Button,
   useMediaQuery,
 } from '@mui/material';
 import { StaticDatePicker } from '@mui/x-date-pickers/StaticDatePicker';
@@ -20,7 +19,7 @@ import { PickersDay } from '@mui/x-date-pickers/PickersDay';
 import dayjs, { Dayjs } from 'dayjs';
 import 'dayjs/locale/uz-latn';
 import 'dayjs/locale/ru';
-import { SurfaceCard } from './MD3Components';
+import { SurfaceCard, FilledButton } from './MD3Components';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import { apiService } from '../services/api';
@@ -40,17 +39,17 @@ const AVAILABILITY_COLORS = {
   available: {
     main: '#2e7d32',      // Green
     light: '#e8f5e8',     // Light green
-    icon: '✓'
+    icon: '✓'             // Check mark
   },
   half: {
-    main: '#f57c00',      // Orange  
+    main: '#f57c00',      // Orange
     light: '#fff3e0',     // Light orange
-    icon: '!'
+    icon: '!'             // Exclamation mark
   },
   full: {
     main: '#d32f2f',      // Red
     light: '#ffebee',     // Light red
-    icon: '✕'
+    icon: '✕'             // X mark
   }
 } as const;
 
@@ -322,21 +321,20 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
   const CustomDay = React.useMemo(() => {
     return (props: any) => {
       const { day, ...otherProps } = props;
-      
+
       // Early return if day is invalid
       if (!day) {
         return <PickersDay {...otherProps} day={day} />;
       }
-      
+
       const availabilityStatus = getDateAvailability(day);
-      
-      // If no availability status, return standard day
-      if (!availabilityStatus) {
-        return <PickersDay {...otherProps} day={day} />;
-      }
 
       // Color mapping functions using constants for consistency
       const getColors = () => {
+        if (!availabilityStatus) {
+          return { main: 'transparent', light: 'transparent', icon: '' };
+        }
+
         switch (availabilityStatus) {
           case 'full':
             return AVAILABILITY_COLORS.full;
@@ -345,85 +343,239 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
           case 'available':
             return AVAILABILITY_COLORS.available;
           default:
-            return { main: '#757575', light: 'transparent', icon: '' };
+            return { main: 'transparent', light: 'transparent', icon: '' };
         }
       };
 
       const colors = getColors();
 
+      // Debug log for ALL days
+      if (typeof window !== 'undefined') {
+        console.log('[CustomDay] Rendering day:', day?.format('YYYY-MM-DD'), 'Status:', availabilityStatus, 'Colors:', colors);
+      }
+
       // Remove event.stopPropagation() to allow proper date selection
       const handleDayClick = (event: React.MouseEvent) => {
-        console.log('CustomDay clicked:', day?.format('YYYY-MM-DD'), 'Status:', availabilityStatus);
+        if (availabilityStatus) {
+          console.log('CustomDay clicked:', day?.format('YYYY-MM-DD'), 'Status:', availabilityStatus);
+        }
         // Let the original onClick handler run
         if (otherProps.onClick) {
           otherProps.onClick(event);
         }
       };
 
+      // Base styles for ALL days (with or without availability)
+      const baseStyles = {
+        position: 'relative !important',
+        transition: 'all 0.2s ease',
+        // Set text color - always dark for visibility
+        color: '#1C1917 !important',
+        fontWeight: '500 !important',
+        // Mobile-first: explicit sizing with !important to override MUI defaults
+        fontSize: '0.875rem !important',
+        width: '40px !important',
+        height: '40px !important',
+        minWidth: '40px !important',
+        minHeight: '40px !important',
+        display: 'inline-flex !important',
+        alignItems: 'center !important',
+        justifyContent: 'center !important',
+        // Ensure text is visible and not hidden
+        visibility: 'visible !important',
+        opacity: '1 !important',
+
+        // Target MUI PickersDay internal button
+        '& button': {
+          color: '#1C1917 !important',
+          fontSize: 'inherit !important',
+        },
+
+        // Target all possible text elements in MUI PickersDay
+        '& *': {
+          color: '#1C1917 !important',
+          visibility: 'visible !important',
+          opacity: '1 !important',
+        },
+
+        // Target MUI internal classes
+        '& .MuiButtonBase-root': {
+          color: '#1C1917 !important',
+        },
+
+        '& .MuiPickersDay-root': {
+          color: '#1C1917 !important',
+        },
+
+        // Tablet (sm: 600px+)
+        '@media (min-width: 600px)': {
+          fontSize: '0.9375rem !important',
+          width: '46px !important',
+          height: '46px !important',
+          minWidth: '46px !important',
+          minHeight: '46px !important',
+        },
+
+        // Medium (md: 900px+)
+        '@media (min-width: 900px)': {
+          fontSize: '0.9375rem !important',
+          width: '48px !important',
+          height: '48px !important',
+          minWidth: '48px !important',
+          minHeight: '48px !important',
+        },
+
+        // Desktop (lg: 1200px+)
+        '@media (min-width: 1200px)': {
+          fontSize: '1rem !important',
+          width: '52px !important',
+          height: '52px !important',
+          minWidth: '52px !important',
+          minHeight: '52px !important',
+        },
+
+        '&.Mui-selected': {
+          backgroundColor: '#0284C7 !important',
+          color: '#FFFFFF !important',
+          fontWeight: '700 !important',
+          '& *': {
+            color: '#FFFFFF !important',
+          },
+          '&:hover': {
+            backgroundColor: '#0369A1 !important',
+            color: '#FFFFFF !important',
+          }
+        },
+
+        // Ensure disabled days are properly styled
+        '&.Mui-disabled': {
+          backgroundColor: 'transparent !important',
+          border: '2px solid transparent !important',
+          color: '#A8A29E !important',
+          '& *': {
+            color: '#A8A29E !important',
+          },
+        },
+      };
+
+      // Styles specific to days with availability status
+      const availabilityStyles = availabilityStatus ? {
+        backgroundColor: colors.light,
+        border: `2px solid ${colors.main}`,
+        borderRadius: modernBorderRadius.md,
+
+        '&:hover': {
+          backgroundColor: colors.light,
+          transform: 'scale(1.02)',
+          color: '#1C1917 !important',
+        },
+
+        '&.Mui-selected': {
+          backgroundColor: `${colors.main} !important`,
+          color: '#FFFFFF !important',
+          '&:hover': {
+            backgroundColor: `${colors.main} !important`,
+          }
+        },
+      } : {
+        // No availability - simple border
+        borderRadius: modernBorderRadius.md,
+
+        '&:hover': {
+          backgroundColor: '#FAFAF9',
+          transform: 'scale(1.02)',
+        },
+      };
+
+      // Manually merge styles to ensure media queries work correctly
+      const mergedStyles = {
+        ...baseStyles,
+        ...availabilityStyles,
+        // Ensure base styles are not overridden
+        color: baseStyles.color,
+        fontWeight: baseStyles.fontWeight,
+        fontSize: baseStyles.fontSize,
+        width: baseStyles.width,
+        height: baseStyles.height,
+        minWidth: baseStyles.minWidth,
+        minHeight: baseStyles.minHeight,
+        display: baseStyles.display,
+        alignItems: baseStyles.alignItems,
+        justifyContent: baseStyles.justifyContent,
+      };
+
+      // Merge badge back into sx to maintain grid layout
+      const finalStyles = {
+        ...mergedStyles,
+        // Badge as ::before to not break grid
+        ...(availabilityStatus ? {
+          '&::before': {
+            content: `"${colors.icon}"`,
+            position: 'absolute',
+            top: '-3px',
+            right: '-3px',
+            width: '15px',
+            height: '15px',
+            borderRadius: '50%',
+            backgroundColor: 'white',
+            border: `2px solid ${colors.main}`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '9px',
+            fontWeight: 700,
+            color: colors.main,
+            lineHeight: 1,
+            zIndex: 10,
+            boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+            pointerEvents: 'none',
+          },
+          '@media (min-width: 600px)': {
+            '&::before': {
+              width: '16px',
+              height: '16px',
+              fontSize: '10px',
+            }
+          },
+          '@media (min-width: 900px)': {
+            '&::before': {
+              width: '17px',
+              height: '17px',
+              fontSize: '11px',
+            }
+          },
+          '@media (min-width: 1200px)': {
+            '&::before': {
+              top: '-4px',
+              right: '-4px',
+              width: '18px',
+              height: '18px',
+              fontSize: '12px',
+            }
+          },
+        } : {}),
+      };
+
       return (
-        <Box sx={{ 
-          position: 'relative', 
-          display: 'inline-block',
-        }}>
-          <PickersDay 
-            {...otherProps}
-            day={day}
-            onClick={handleDayClick}
-            sx={{
-              backgroundColor: colors.light,
-              border: `2px solid ${colors.main}`,
-              borderRadius: modernBorderRadius.md,
-              position: 'relative',
-              transition: 'all 0.2s ease',
-              
-              '&:hover': {
-                backgroundColor: colors.light === 'transparent' 
-                  ? modernColors.gray[50]
-                  : colors.light,
-                transform: 'scale(1.02)',
-              },
-              
-              '&.Mui-selected': {
-                backgroundColor: colors.main,
-                color: 'white',
-                fontWeight: 'bold',
-                '&:hover': {
-                  backgroundColor: colors.main,
-                }
-              },
-              
-              // Ensure disabled days are properly styled
-              '&.Mui-disabled': {
-                backgroundColor: 'transparent',
-                border: '2px solid transparent',
-                color: 'text.disabled',
-              }
-            }}
-          />
-          
-          {/* Status indicator with better positioning */}
-          <Box
-            sx={{
-              position: 'absolute',
-              top: '1px',
-              right: '1px',
-              width: '14px',
-              height: '14px',
-              borderRadius: '50%',
-              backgroundColor: 'white',
-              border: `2px solid ${colors.main}`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '9px',
-              fontWeight: 'bold',
-              color: colors.main,
-              pointerEvents: 'none',
-            }}
-          >
-            {colors.icon}
-          </Box>
-        </Box>
+        <PickersDay
+          {...otherProps}
+          day={day}
+          onClick={handleDayClick}
+          sx={finalStyles}
+          style={{
+            color: '#1C1917',
+            fontSize: '0.875rem',
+            width: '40px',
+            height: '40px',
+            minWidth: '40px',
+            minHeight: '40px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            visibility: 'visible',
+            opacity: 1,
+          }}
+        />
       );
     };
   }, [examDates]); // Re-create only when examDates change
@@ -433,7 +585,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
       <Typography variant="h2" gutterBottom sx={{
         fontSize: { xs: '20px', sm: '24px', md: '28px' },
         fontWeight: 600,
-        mb: { xs: 3, sm: 4, md: 6 },
+        mb: { xs: 2, sm: 3, md: 4 },
         color: 'text.primary'
       }}>
         {t('exam_selection.title')}
@@ -445,7 +597,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
         </Alert>
       )}
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 3, sm: 4, md: 6 } }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3, md: 4 } }}>
         {/* Exam Name - First step */}
         <FormControl fullWidth>
           <InputLabel>{t('exam_selection.exam_name')}</InputLabel>
@@ -558,76 +710,209 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
 
               <SurfaceCard surfaceVariant="elevated" sx={{
                 p: { xs: 2, sm: 3, md: 4, lg: 6 },
-                display: 'block',
                 width: '100%',
                 maxWidth: '100%',
-                overflow: 'hidden'
               }}>
               <Box sx={{
                 display: 'flex',
-                justifyContent: 'center',
+                flexDirection: { xs: 'column', lg: 'row' },
+                gap: { xs: 3, sm: 4, lg: 6 },
+                alignItems: { xs: 'flex-start', lg: 'flex-start' },
                 width: '100%',
-                overflow: 'auto'
               }}>
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <StaticDatePicker
-                    value={selectedDate}
-                    onChange={handleDateChange}
-                    shouldDisableDate={shouldDisableDate}
-                    disabled={examDates.length === 0}
-                    minDate={dayjs()}
-                    maxDate={dayjs().add(6, 'month')}
-                    displayStaticWrapperAs="desktop"
-                    slots={{
-                      day: CustomDay,
-                    }}
-                    slotProps={{
-                      layout: {
-                        sx: {
-                          '& .MuiDateCalendar-root': {
-                            backgroundColor: 'transparent',
+                {/* Calendar */}
+                <Box sx={{
+                  flex: { xs: '0 0 auto', lg: '1 1 65%' },
+                  display: 'flex',
+                  justifyContent: { xs: 'center', sm: 'center' },
+                  width: '100%',
+                  minHeight: { xs: '380px', sm: '420px', md: '450px', lg: '500px' },
+                  maxHeight: { xs: 'none', sm: 'none' },
+                  overflow: 'visible',
+                }}>
+                  <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <StaticDatePicker
+                      value={selectedDate}
+                      onChange={handleDateChange}
+                      shouldDisableDate={shouldDisableDate}
+                      disabled={examDates.length === 0}
+                      minDate={dayjs()}
+                      maxDate={dayjs().add(6, 'month')}
+                      displayStaticWrapperAs="desktop"
+                      slots={{
+                        day: CustomDay,
+                      }}
+                      slotProps={{
+                        layout: {
+                          sx: {
                             width: '100%',
-                            maxWidth: { xs: '320px', sm: '100%' },
-                          },
-                          '& .MuiPickersCalendarHeader-root': {
-                            paddingLeft: { xs: 1, sm: 2 },
-                            paddingRight: { xs: 1, sm: 2 },
-                          },
-                          '& .MuiDayCalendar-header': {
-                            justifyContent: 'space-around',
-                          },
-                          '& .MuiPickersDay-root': {
-                            borderRadius: modernBorderRadius.md,
-                            margin: { xs: '1px', sm: '2px' },
-                            fontSize: { xs: '0.8rem', sm: '0.875rem' },
-                            width: { xs: '32px', sm: '36px' },
-                            height: { xs: '32px', sm: '36px' },
-                            '&.Mui-disabled': {
-                              color: 'text.disabled',
-                              backgroundColor: 'transparent',
-                            },
-                          },
-                        }
-                      }
-                    }}
-                  />
-                </LocalizationProvider>
-              </Box>
+                            maxWidth: '100%',
 
-              {/* Calendar Legend */}
-              <Box sx={{
-                mt: { xs: 3, sm: 4, md: 6 },
-                p: { xs: 3, sm: 4, md: 6 },
-                backgroundColor: modernColors.gray[50],
-                borderRadius: modernBorderRadius.xs,
-                border: `1px solid ${modernColors.gray[200]}`
-              }}>
+                            '& .MuiDateCalendar-root': {
+                              backgroundColor: 'transparent',
+                              width: '100%',
+                              maxWidth: '100%',
+                              height: 'auto',
+                              minHeight: { xs: 'auto', sm: 'auto', md: '450px', lg: '500px' },
+
+                              // Mobile specific fixes
+                              '@media (max-width: 899px)': {
+                                width: '100% !important',
+                                maxWidth: '100% !important',
+                              },
+                            },
+                            '& .MuiPickersCalendarHeader-root': {
+                              paddingLeft: { xs: 1, sm: 1.5, md: 2 },
+                              paddingRight: { xs: 1, sm: 1.5, md: 2 },
+                              marginBottom: { xs: 1, sm: 1.5, md: 2 },
+                            },
+                            '& .MuiDayCalendar-root': {
+                              height: 'auto',
+                              width: '100%',
+
+                              // Mobile: ensure full width
+                              '@media (max-width: 899px)': {
+                                width: '100% !important',
+                              },
+                            },
+                            '& .MuiDayCalendar-header': {
+                              justifyContent: 'space-between',
+                              paddingLeft: { xs: '6px', sm: '6px', md: '8px', lg: '8px' },
+                              paddingRight: { xs: '6px', sm: '6px', md: '8px', lg: '8px' },
+                              marginBottom: { xs: '6px', sm: '8px', md: '8px', lg: '10px' },
+                            },
+                            '& .MuiDayCalendar-weekDayLabel': {
+                              width: { xs: '40px', sm: '46px', md: '48px', lg: '52px' },
+                              height: { xs: '40px', sm: '46px', md: '48px', lg: '52px' },
+                              fontSize: { xs: '0.75rem', sm: '0.8125rem', md: '0.8125rem', lg: '0.875rem' },
+                              margin: 0,
+                              fontWeight: 600,
+                            },
+                            '& .MuiDayCalendar-slideTransition': {
+                              minHeight: { xs: 'auto', sm: 'auto', md: '320px', lg: '340px' },
+                              overflow: 'visible !important',
+
+                              // Mobile: calculate height for 6 weeks
+                              '@media (max-width: 599px)': {
+                                minHeight: 'calc(6 * 40px + 5 * 6px) !important', // 6 rows * 40px + 5 gaps * 6px = 270px
+                                height: 'auto !important',
+                              },
+
+                              // Tablet
+                              '@media (min-width: 600px) and (max-width: 899px)': {
+                                minHeight: 'calc(6 * 46px + 5 * 6px) !important', // 6 rows * 46px + 5 gaps * 6px = 306px
+                                height: 'auto !important',
+                              },
+                            },
+                            '& .MuiDayCalendar-monthContainer': {
+                              height: 'auto',
+                              minHeight: { xs: 'auto', sm: 'auto', md: 'auto' },
+
+                              // Mobile: ensure it takes full height
+                              '@media (max-width: 899px)': {
+                                height: 'auto !important',
+                                display: 'flex !important',
+                                flexDirection: 'column !important',
+                              },
+                            },
+                            '& .MuiDayCalendar-weekContainer': {
+                              justifyContent: 'space-between',
+                              margin: 0,
+                              marginBottom: { xs: '6px', sm: '6px', md: '6px', lg: '6px' },
+                              paddingLeft: { xs: '6px', sm: '6px', md: '8px', lg: '8px' },
+                              paddingRight: { xs: '6px', sm: '6px', md: '8px', lg: '8px' },
+                              height: { xs: '40px', sm: '46px', md: '48px', lg: '52px' },
+
+                              // Mobile: enforce height with !important
+                              '@media (max-width: 899px)': {
+                                height: '40px !important',
+                                minHeight: '40px !important',
+                                maxHeight: '40px !important',
+                                display: 'flex !important',
+                                alignItems: 'center !important',
+                                justifyContent: 'space-between !important',
+                                marginBottom: '6px !important',
+                              },
+
+                              // Tablet
+                              '@media (min-width: 600px) and (max-width: 899px)': {
+                                height: '46px !important',
+                                minHeight: '46px !important',
+                                maxHeight: '46px !important',
+                              },
+
+                              // Medium
+                              '@media (min-width: 900px) and (max-width: 1199px)': {
+                                height: '48px !important',
+                                minHeight: '48px !important',
+                                maxHeight: '48px !important',
+                              },
+
+                              // Desktop
+                              '@media (min-width: 1200px)': {
+                                height: '52px !important',
+                                minHeight: '52px !important',
+                                maxHeight: '52px !important',
+                              },
+                            },
+                            '& .MuiPickersDay-root': {
+                              borderRadius: modernBorderRadius.md,
+                              margin: 0,
+                              fontSize: { xs: '0.875rem', sm: '0.9375rem', md: '0.9375rem', lg: '1rem' },
+                              width: { xs: '40px', sm: '46px', md: '48px', lg: '52px' },
+                              height: { xs: '40px', sm: '46px', md: '48px', lg: '52px' },
+                              fontWeight: 500,
+
+                              // Mobile: ensure visibility and proper sizing
+                              '@media (max-width: 899px)': {
+                                color: '#1C1917 !important',
+                                fontSize: '0.875rem !important',
+                                width: '40px !important',
+                                height: '40px !important',
+                                minWidth: '40px !important',
+                                minHeight: '40px !important',
+                                display: 'flex !important',
+                                alignItems: 'center !important',
+                                justifyContent: 'center !important',
+                              },
+
+                              // Tablet
+                              '@media (min-width: 600px) and (max-width: 899px)': {
+                                fontSize: '0.9375rem !important',
+                                width: '46px !important',
+                                height: '46px !important',
+                                minWidth: '46px !important',
+                                minHeight: '46px !important',
+                              },
+
+                              '&.Mui-disabled': {
+                                color: 'text.disabled',
+                                backgroundColor: 'transparent',
+                              },
+                            },
+                          }
+                        }
+                      }}
+                    />
+                  </LocalizationProvider>
+                </Box>
+
+                {/* Calendar Legend */}
+                <Box sx={{
+                  flex: { xs: '0 0 auto', lg: '1 1 35%' },
+                  p: { xs: 2.5, sm: 3, md: 4 },
+                  backgroundColor: modernColors.gray[50],
+                  borderRadius: modernBorderRadius.xs,
+                  border: `1px solid ${modernColors.gray[200]}`,
+                  width: { xs: '100%', lg: 'auto' },
+                  alignSelf: { xs: 'stretch', lg: 'flex-start' },
+                }}>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   {t('exam_selection.legend')}:
                 </Typography>
                 <Box sx={{
                   display: 'flex',
-                  gap: { xs: 3, sm: 4, md: 6 },
+                  gap: { xs: 2, sm: 3, md: 4 },
                   flexWrap: 'wrap'
                 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -727,6 +1012,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
                 <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
                   {t('exam_selection.availability_explanation')}
                 </Typography>
+                </Box>
               </Box>
 
               {selectedDate && (
@@ -844,13 +1130,10 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
       <Box sx={{
         display: 'flex',
         justifyContent: 'flex-end',
-        mt: { xs: 6, sm: 8, md: 10 }
+        mt: { xs: 4, sm: 6, md: 8 }
       }}>
-        <Button
-          variant="contained"
+        <FilledButton
           type="submit"
-          size="large"
-          fullWidth={isMobile}
           disabled={
             !formik.values.examName ||
             !formik.values.region ||
@@ -859,16 +1142,12 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
             !formik.isValid
           }
           sx={{
+            width: { xs: '100%', sm: 'auto' },
             borderRadius: modernBorderRadius.xs,
-            textTransform: 'none',
-            px: { xs: 4, sm: 5, md: 6 },
-            py: { xs: 2, sm: 2.5, md: 3 },
-            fontSize: { xs: '13px', sm: '14px' },
-            fontWeight: 500,
           }}
         >
           {t('common.next')}
-        </Button>
+        </FilledButton>
       </Box>
     </Box>
   );
