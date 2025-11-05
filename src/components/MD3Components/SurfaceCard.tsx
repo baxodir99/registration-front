@@ -11,7 +11,9 @@ interface SurfaceCardProps extends Omit<CardProps, 'variant'> {
   children: React.ReactNode;
 }
 
-const ModernSurfaceCard = styled(Card)<{ surfaceVariant: SurfaceVariant }>(
+const ModernSurfaceCard = styled(Card, {
+  shouldForwardProp: (prop) => prop !== 'surfaceVariant',
+})<{ surfaceVariant: SurfaceVariant }>(
   ({ theme, surfaceVariant }) => {
     const getStyles = () => {
       switch (surfaceVariant) {
@@ -69,10 +71,10 @@ const ModernSurfaceCard = styled(Card)<{ surfaceVariant: SurfaceVariant }>(
   }
 );
 
-const SurfaceCard: React.FC<SurfaceCardProps> = ({ 
-  surfaceVariant = 'default', 
-  children, 
-  ...props 
+const SurfaceCard: React.FC<SurfaceCardProps> = ({
+  surfaceVariant = 'default',
+  children,
+  ...props
 }) => {
   return (
     <ModernSurfaceCard surfaceVariant={surfaceVariant} {...props}>

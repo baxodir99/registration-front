@@ -622,7 +622,11 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
           ) : (
             <Select
               name="exam"
-              value={formik.values.exam}
+              value={
+                exams.length > 0 && formik.values.exam && exams.find(e => e.id === Number(formik.values.exam))
+                  ? formik.values.exam
+                  : ''
+              }
               onChange={formik.handleChange}
               error={formik.touched.exam && Boolean(formik.errors.exam)}
               label={t('exam_selection.exam')}
