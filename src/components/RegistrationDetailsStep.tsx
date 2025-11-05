@@ -185,7 +185,7 @@ const RegistrationDetailsStep: React.FC<RegistrationDetailsStepProps> = ({
             }
           />
           {formik.touched.terms_accepted && formik.errors.terms_accepted && (
-            <Alert severity="error" sx={{ mt: 1, borderRadius: modernBorderRadius.xs }}>
+            <Alert severity="error" sx={{ mt: 1, borderRadius: modernBorderRadius.lg }}>
               {t(formik.errors.terms_accepted as string)}
             </Alert>
           )}

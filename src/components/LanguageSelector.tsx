@@ -49,7 +49,7 @@ const LanguageSelector: React.FC = () => {
           },
           "& .MuiOutlinedInput-notchedOutline": {
             border: `1px solid ${modernColors.gray[300]}`,
-            borderRadius: modernBorderRadius.xs,
+            borderRadius: modernBorderRadius.lg,
           },
           "& .MuiSvgIcon-root": {
             color: modernColors.gray[600],
