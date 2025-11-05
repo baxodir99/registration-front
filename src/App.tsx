@@ -307,9 +307,12 @@ function App() {
         sx={{
           backgroundColor: modernColors.surface.primary,
           borderBottom: `1px solid ${modernColors.gray[200]}`,
+          mx: { xs: 1.5, sm: 2, md: 3, lg: 4 },
+          borderBottomLeftRadius: modernBorderRadius.xs,
+          borderBottomRightRadius: modernBorderRadius.xs,
         }}
       >
-        <Container maxWidth="lg">
+        <Container maxWidth="lg" disableGutters>
           <Box sx={{
             display: 'flex',
             flexDirection: { xs: 'column', md: 'row' },
