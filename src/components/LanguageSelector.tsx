@@ -106,20 +106,24 @@ const LanguageSelector: React.FC = () => {
         }}
       >
         {LANGUAGES.map((language) => {
-          // Hide currently selected language from dropdown
-          if (language.code === i18n.language) {
-            return null;
-          }
+          const isSelected = language.code === i18n.language;
           return (
             <MenuItem
               key={language.code}
               value={language.code}
+              selected={isSelected}
               sx={{
                 py: 1.5,
                 px: 2,
                 "&:hover": {
                   backgroundColor: modernColors.gray[50],
                 },
+                ...(isSelected && {
+                  backgroundColor: modernColors.primary[50],
+                  "&:hover": {
+                    backgroundColor: modernColors.primary[100],
+                  },
+                }),
               }}
             >
 
