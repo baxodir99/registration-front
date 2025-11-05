@@ -119,16 +119,16 @@ const customSpacingValues = {
   '5xl': 12, // 96px = theme.spacing(12)
 };
 
-// Border Radius System - Formula: Outer Radius = Inner Radius + Padding
-// Base: 8px, Increment: 4px (following spacing system)
+// Border Radius System - Minimal rounded corners
+// Using small radius values for clean, modern appearance
 const borderRadius = {
   none: 0,
-  xs: 8,    // Base inner radius (small elements like chips, badges)
-  sm: 12,   // xs + 4px (inputs, small cards)
-  md: 16,   // sm + 4px (buttons, alerts, medium cards)
-  lg: 20,   // md + 4px (large buttons, modals)
-  xl: 24,   // lg + 4px (large cards, containers)
-  '2xl': 32, // xl + 8px (main containers, sections)
+  xs: 4,    // Minimal radius (main containers, minimal rounding)
+  sm: 8,    // Small radius (cards, small elements)
+  md: 12,   // Medium radius (buttons, alerts)
+  lg: 16,   // Large radius (modals, large cards)
+  xl: 20,   // Extra large radius
+  '2xl': 24, // 2X large radius
   full: 9999,
 };
 
