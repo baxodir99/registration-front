@@ -95,7 +95,7 @@ const LanguageSelector: React.FC = () => {
           PaperProps: {
             sx: {
               borderRadius: modernBorderRadius.xxs,
-              mt: 0,
+              mt: 1,
               border: `1px solid ${modernColors.gray[200]}`,
               boxShadow: "none",
               "& .MuiList-root": {
