@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import { apiService } from '../services/api';
 import { personalizationSchema } from '../utils/validation';
-import { formatPNFL, formatPassport } from '../utils/validation';
+import { formatPNFL, formatPassport, formatDate, formatDateRange } from '../utils/validation';
 import { FormData, UserProfile } from '../types';
 import { modernBorderRadius } from '../theme/modernTheme';
 
@@ -134,26 +134,26 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
       <Typography variant="h2" gutterBottom sx={{
         fontSize: { xs: '20px', sm: '24px', md: '28px' },
         fontWeight: 600,
-        mb: { xs: 3, sm: 4, md: 6 },
+        mb: { xs: 2, sm: 3, md: 4 },
         color: 'text.primary'
       }}>
         {t('personalization.title')}
       </Typography>
 
       {error && (
-        <Alert severity="error" sx={{ mb: { xs: 3, sm: 4, md: 6 }, borderRadius: modernBorderRadius.xs }}>
+        <Alert severity="error" sx={{ mb: { xs: 2, sm: 3, md: 4 }, borderRadius: modernBorderRadius.xs }}>
           {error}
         </Alert>
       )}
 
       {userProfile && (
-        <Alert severity="success" sx={{ mb: { xs: 3, sm: 4, md: 6 }, borderRadius: modernBorderRadius.xs }}>
+        <Alert severity="success" sx={{ mb: { xs: 2, sm: 3, md: 4 }, borderRadius: modernBorderRadius.xs }}>
           {t('messages.personalization_success')}
         </Alert>
       )}
 
-      <Box component="form" onSubmit={handleSubmit} sx={{ mb: { xs: 3, sm: 4, md: 6 } }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 3, sm: 4, md: 6 } }}>
+      <Box component="form" onSubmit={handleSubmit} sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3, md: 4 } }}>
           {/* PNFL Field */}
           <FilledTextField
             fullWidth
@@ -204,6 +204,9 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
                 <span>{t('common.loading')}</span>
               </Box>
             }
+            sx={{
+              borderRadius: modernBorderRadius.xs,
+            }}
           >
             {t('personalization.check')}
           </LoadingButton>
@@ -213,13 +216,13 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
       {/* User Profile Display */}
       {userProfile && (
         <SurfaceCard surfaceVariant="elevated" sx={{
-          p: { xs: 3, sm: 4, md: 6, lg: 8 },
-          mb: { xs: 4, sm: 6, md: 8 }
+          p: { xs: 3, sm: 4, md: 6 },
+          mb: { xs: 3, sm: 4, md: 6 }
         }}>
           <Typography variant="h4" gutterBottom sx={{
             fontSize: { xs: '16px', sm: '18px', md: '20px' },
             fontWeight: 600,
-            mb: { xs: 3, sm: 4, md: 6 }
+            mb: { xs: 2, sm: 3, md: 4 }
           }}>
             {t('user_info.title')}
           </Typography>
@@ -228,7 +231,7 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
             gap: { xs: 2, sm: 3, md: 4 },
-            rowGap: { xs: 3, sm: 4, md: 6 }
+            rowGap: { xs: 2, sm: 3, md: 4 }
           }}>
             <Box>
               <Typography variant="body2" color="text.secondary">
@@ -253,7 +256,7 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
                 {t('user_info.birth_date')}
               </Typography>
               <Typography variant="body1" gutterBottom>
-                {new Date(userProfile.birth_date).toLocaleDateString()}
+                {formatDate(userProfile.birth_date)}
               </Typography>
             </Box>
 
@@ -298,8 +301,7 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
                 {t('user_info.doc_valid_period')}
               </Typography>
               <Typography variant="body1" gutterBottom>
-                {new Date(userProfile.matches_date_begin_document).toLocaleDateString()} - {' '}
-                {new Date(userProfile.matches_date_end_document).toLocaleDateString()}
+                {formatDateRange(userProfile.matches_date_begin_document, userProfile.matches_date_end_document)}
               </Typography>
             </Box>
           </Box>
@@ -311,7 +313,7 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
         display: 'flex',
         flexDirection: { xs: 'column', sm: 'row' },
         justifyContent: 'space-between',
-        mt: { xs: 6, sm: 8, md: 10 },
+        mt: { xs: 4, sm: 6, md: 8 },
         gap: { xs: 2, sm: 3, md: 4 }
       }}>
         <OutlinedButton
@@ -319,6 +321,7 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
           disabled={loading}
           sx={{
             width: { xs: '100%', sm: 'auto' },
+            borderRadius: modernBorderRadius.xs,
           }}
         >
           {t('common.previous')}
@@ -330,6 +333,7 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
             disabled={loading}
             sx={{
               width: { xs: '100%', sm: 'auto' },
+              borderRadius: modernBorderRadius.xs,
               animation: 'pulse 2s infinite',
               '@keyframes pulse': {
                 '0%': { transform: 'scale(1)' },

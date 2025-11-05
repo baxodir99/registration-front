@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import {
   Box,
   Typography,
-  Button,
   Divider,
   Chip,
   Alert,
   CircularProgress,
 } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
+import { OutlinedButton } from './MD3Components';
 import {
   Person as PersonIcon,
   School as SchoolIcon,
@@ -20,6 +20,7 @@ import { FormData } from '../types';
 import { apiService } from '../services/api';
 import { SurfaceCard } from './MD3Components';
 import { modernBorderRadius } from '../theme/modernTheme';
+import { formatDate } from '../utils/validation';
 
 interface ConfirmationStepProps {
   formData: FormData;
@@ -93,7 +94,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
       <Typography variant="h2" gutterBottom sx={{
         fontSize: { xs: '20px', sm: '24px', md: '28px' },
         fontWeight: 600,
-        mb: { xs: 3, sm: 4, md: 6 },
+        mb: { xs: 2, sm: 3, md: 4 },
         color: 'text.primary'
       }}>
         {t('confirmation.title')}
@@ -105,7 +106,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
         </Alert>
       )}
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 3, sm: 4, md: 6 } }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3, md: 4 } }}>
         {/* Exam Information */}
         <SurfaceCard surfaceVariant="elevated" sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, sm: 3, md: 4 } }}>
@@ -163,7 +164,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
                 {t('exam_selection.exam_date')}
               </Typography>
               <Typography variant="body1">
-                {examDate && new Date(examDate.date).toLocaleDateString()}
+                {examDate && formatDate(examDate.date)}
               </Typography>
             </Box>
 
@@ -236,8 +237,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
                 {t('user_info.birth_date')}
               </Typography>
               <Typography variant="body1">
-                {formData.userProfile && 
-                  new Date(formData.userProfile.birth_date).toLocaleDateString()}
+                {formData.userProfile && formatDate(formData.userProfile.birth_date)}
               </Typography>
             </Box>
 
@@ -297,23 +297,19 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
         display: 'flex',
         flexDirection: { xs: 'column', sm: 'row' },
         justifyContent: 'space-between',
-        mt: { xs: 6, sm: 8, md: 10 },
-        gap: { xs: 2, sm: 2, md: 2 }
+        mt: { xs: 4, sm: 6, md: 8 },
+        gap: { xs: 2, sm: 3, md: 4 }
       }}>
-        <Button
-          variant="outlined"
+        <OutlinedButton
           onClick={onPrevious}
           disabled={loading}
           sx={{
-            borderRadius: modernBorderRadius.xs + 'px',
-            textTransform: 'none',
-            px: { xs: 2, sm: 2.5, md: 3 },
-            py: { xs: 1.2, sm: 1.4, md: 1.5 },
             width: { xs: '100%', sm: 'auto' },
+            borderRadius: modernBorderRadius.xs,
           }}
         >
           {t('common.previous')}
-        </Button>
+        </OutlinedButton>
 
         <LoadingButton
           variant="contained"
@@ -326,12 +322,8 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
               <span>{t('common.loading')}</span>
             </Box>
           }
-          size="large"
           sx={{
-            borderRadius: modernBorderRadius.xs + 'px',
-            textTransform: 'none',
-            px: { xs: 2, sm: 2.5, md: 3 },
-            py: { xs: 1.2, sm: 1.4, md: 1.5 },
+            borderRadius: modernBorderRadius.xs,
             width: { xs: '100%', sm: 'auto' },
           }}
         >

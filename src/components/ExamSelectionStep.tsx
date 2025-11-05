@@ -23,7 +23,7 @@ import { SurfaceCard, FilledButton } from './MD3Components';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import { apiService } from '../services/api';
-import { examSelectionSchema } from '../utils/validation';
+import { examSelectionSchema, formatDate } from '../utils/validation';
 import { modernColors, modernBorderRadius } from '../theme/modernTheme';
 import {
   Type,
@@ -1036,7 +1036,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
                     color: modernColors.gray[900],
                     fontSize: { xs: '0.9rem', sm: '1rem' }
                   }}>
-                    {selectedDate.format('DD MMMM YYYY')}
+                    {formatDate(selectedDate.toDate())}
                   </Typography>
                   
                   {(() => {

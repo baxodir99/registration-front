@@ -118,7 +118,42 @@ export const formatPNFL = (pnfl: string): string => {
   if (!pnfl || typeof pnfl !== 'string') {
     return '';
   }
-  
+
   // Remove all non-numeric characters
   return pnfl.replace(/\D/g, '');
+};
+
+/**
+ * Format date to DD.MM.YYYY format (Uzbekistan standard)
+ * @param date - Date object, string, or number
+ * @returns Formatted date string in DD.MM.YYYY format
+ */
+export const formatDate = (date: Date | string | number): string => {
+  if (!date) return '';
+
+  const dateObj = new Date(date);
+
+  // Check if date is valid
+  if (isNaN(dateObj.getTime())) return '';
+
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const year = dateObj.getFullYear();
+
+  return `${day}.${month}.${year}`;
+};
+
+/**
+ * Format date range to DD.MM.YYYY - DD.MM.YYYY format
+ * @param startDate - Start date
+ * @param endDate - End date
+ * @returns Formatted date range string
+ */
+export const formatDateRange = (startDate: Date | string | number, endDate: Date | string | number): string => {
+  const start = formatDate(startDate);
+  const end = formatDate(endDate);
+
+  if (!start || !end) return '';
+
+  return `${start} - ${end}`;
 };
