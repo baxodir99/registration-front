@@ -1139,7 +1139,12 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
             !formik.values.region ||
             !formik.values.exam ||
             !formik.values.examDate ||
-            !formik.isValid
+            !formik.isValid ||
+            (() => {
+              // Check if selected date is full
+              const selectedExamDate = examDates.find(ed => ed.id === Number(formik.values.examDate));
+              return selectedExamDate?.availability_status === 'full';
+            })()
           }
           sx={{
             width: { xs: '100%', sm: 'auto' },
