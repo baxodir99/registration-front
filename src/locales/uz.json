@@ -51,6 +51,7 @@
     "availability": "Band",
     "amount": "Narxi",
     "availability_explanation": "Har bir sana pastida to'ldirilganlik darajasi ko'rsatiladi",
+    "date_full_warning": "Bu kunga ro'yxatdan o'tish imkoni yo'q, boshqa sana tanlang",
     "debug_exam_dates": "Imtihon/Malaka oshirish sanalari",
     "debug_available": "Mavjud",
     "debug_selected": "Tanlangan"

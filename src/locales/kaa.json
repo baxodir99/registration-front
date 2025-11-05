@@ -41,7 +41,14 @@
     "exam_placeholder": "Imtıxannı tańlań",
     "exam_date": "Imtıxan kúni",
     "exam_date_placeholder": "Imtıxan kúnin tańlań",
-    "amount": "Baǵası"
+    "amount": "Baǵası",
+    "legend": "Belgiler",
+    "available": "Bos orınlar bar",
+    "half_full": "Yarım tolı",
+    "full": "Tolı",
+    "availability": "Band",
+    "availability_explanation": "Hár bir kúnniń toltırılıwlıq dárejasin tómende kórsetilgen",
+    "date_full_warning": "Bul kúnge dizimnen ótiw múmkin emes, basqa kún tańlań"
   },
   "personalization": {
     "title": "Jeke málimatlardı tasdıqlań",

@@ -51,6 +51,7 @@
     "availability": "Занято",
     "amount": "Стоимость",
     "availability_explanation": "Уровень заполненности показан под каждой датой",
+    "date_full_warning": "Регистрация на эту дату недоступна, выберите другую дату",
     "debug_exam_dates": "Даты экзаменов",
     "debug_available": "Доступно",
     "debug_selected": "Выбрано"

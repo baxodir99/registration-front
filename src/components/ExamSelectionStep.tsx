@@ -1087,6 +1087,24 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
                               {t(`exam_selection.${selectedExamDate.availability_status}`)}
                             </Typography>
                           </Box>
+
+                          {/* Warning message when date is full */}
+                          {selectedExamDate.availability_status === 'full' && (
+                            <Alert
+                              severity="error"
+                              sx={{
+                                mt: 2,
+                                borderRadius: modernBorderRadius.xxs,
+                                backgroundColor: AVAILABILITY_COLORS.full.light,
+                                color: AVAILABILITY_COLORS.full.main,
+                                '& .MuiAlert-icon': {
+                                  color: AVAILABILITY_COLORS.full.main,
+                                }
+                              }}
+                            >
+                              {t('exam_selection.date_full_warning')}
+                            </Alert>
+                          )}
                         </Box>
                       );
                     }

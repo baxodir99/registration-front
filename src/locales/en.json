@@ -51,6 +51,7 @@
     "availability": "Occupied",
     "amount": "Price",
     "availability_explanation": "The occupancy level is shown below each date",
+    "date_full_warning": "Registration for this date is not available, please select another date",
     "debug_exam_dates": "Exam Dates",
     "debug_available": "Available",
     "debug_selected": "Selected"
