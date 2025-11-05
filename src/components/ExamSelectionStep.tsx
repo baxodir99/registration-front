@@ -902,7 +902,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
                   flex: { xs: '0 0 auto', lg: '1 1 35%' },
                   p: { xs: 2.5, sm: 3, md: 4 },
                   backgroundColor: modernColors.gray[50],
-                  borderRadius: modernBorderRadius.xs,
+                  borderRadius: modernBorderRadius.xxs,
                   border: `1px solid ${modernColors.gray[200]}`,
                   width: { xs: '100%', lg: 'auto' },
                   alignSelf: { xs: 'stretch', lg: 'flex-start' },
@@ -1020,7 +1020,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
                   mt: { xs: 2, sm: 2 },
                   p: { xs: 2, sm: 2.5, md: 3 },
                   backgroundColor: modernColors.primary[50],
-                  borderRadius: modernBorderRadius.xs,
+                  borderRadius: modernBorderRadius.xxs,
                   border: `1px solid ${modernColors.primary[200]}`
                 }}>
                   <Typography variant="body2" sx={{
