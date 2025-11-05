@@ -3,7 +3,6 @@ import {
   Box,
   Typography,
   TextField,
-  Button,
   FormControlLabel,
   Checkbox,
   Alert,
@@ -11,6 +10,7 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
+import { FilledButton, OutlinedButton } from './MD3Components';
 import {
   Download as DownloadIcon,
   OpenInNew as OpenInNewIcon,
@@ -73,7 +73,8 @@ const RegistrationDetailsStep: React.FC<RegistrationDetailsStepProps> = ({
       email: formik.values.email || undefined,
       terms_accepted: formik.values.terms_accepted,
     });
-  }, [formik.values, onDataChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formik.values]);
 
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -94,13 +95,13 @@ const RegistrationDetailsStep: React.FC<RegistrationDetailsStepProps> = ({
       <Typography variant="h2" gutterBottom sx={{
         fontSize: { xs: '20px', sm: '24px', md: '28px' },
         fontWeight: 600,
-        mb: { xs: 3, sm: 4, md: 6 },
+        mb: { xs: 2, sm: 3, md: 4 },
         color: 'text.primary'
       }}>
         {t('registration_details.title')}
       </Typography>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 3, sm: 4, md: 6 } }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3, md: 4 } }}>
         {/* Phone Field */}
         <TextField
           fullWidth
@@ -197,29 +198,29 @@ const RegistrationDetailsStep: React.FC<RegistrationDetailsStepProps> = ({
         display: 'flex',
         flexDirection: { xs: 'column', sm: 'row' },
         justifyContent: 'space-between',
-        mt: { xs: 6, sm: 8, md: 10 },
+        mt: { xs: 4, sm: 6, md: 8 },
         gap: { xs: 2, sm: 3, md: 4 }
       }}>
-        <Button
-          variant="outlined"
+        <OutlinedButton
           onClick={onPrevious}
           sx={{
             width: { xs: '100%', sm: 'auto' },
+            borderRadius: modernBorderRadius.xs,
           }}
         >
           {t('common.previous')}
-        </Button>
+        </OutlinedButton>
 
-        <Button
+        <FilledButton
           type="submit"
-          variant="contained"
           disabled={!formik.isValid || !formik.values.terms_accepted}
           sx={{
             width: { xs: '100%', sm: 'auto' },
+            borderRadius: modernBorderRadius.xs,
           }}
         >
           {t('common.next')}
-        </Button>
+        </FilledButton>
       </Box>
     </Box>
   );

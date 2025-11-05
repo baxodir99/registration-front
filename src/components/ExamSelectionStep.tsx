@@ -156,12 +156,13 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
       exam: formik.values.exam ? Number(formik.values.exam) : undefined,
       examDate: formik.values.examDate ? Number(formik.values.examDate) : undefined,
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    formik.values.examName, 
-    formik.values.region, 
-    formik.values.exam, 
+    formik.values.examName,
+    formik.values.region,
+    formik.values.exam,
     formik.values.examDate,
-    onDataChange
+    // onDataChange is intentionally omitted to prevent infinite loop
   ]);
 
   // Load exams when examName changes

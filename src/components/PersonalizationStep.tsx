@@ -54,7 +54,8 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
       passport: formik.values.passport || undefined,
       userProfile: userProfile || undefined,
     });
-  }, [formik.values, userProfile, onDataChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formik.values, userProfile]);
 
   const checkPersonalization = async (values: { pnfl: string; passport: string }) => {
     try {
