@@ -10,7 +10,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
     <Box
       sx={{
-        backgroundColor: modernColors.gray[50],
+        backgroundColor: modernColors.surface.body,
         minHeight: '100vh',
         pb: { xs: 4, sm: 6, md: 8 },
       }}
