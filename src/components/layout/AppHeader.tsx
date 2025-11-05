@@ -18,21 +18,29 @@ const AppHeader: React.FC<AppHeaderProps> = ({ currentStep, onOpenResetDialog })
   return (
     <Box
       sx={{
-        backgroundColor: modernColors.surface.primary,
-        borderBottom: `1px solid ${modernColors.gray[200]}`,
+        backgroundColor: modernColors.gray[50],
+        pb: { xs: 3, sm: 4, md: 6 },
       }}
     >
       <Container maxWidth="lg" sx={{ px: { xs: 1.5, sm: 2, md: 3, lg: 4 } }}>
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            alignItems: 'center',
-            justifyContent: { xs: 'center', md: 'space-between' },
-            py: { xs: 2, sm: 2.5, md: 3 },
-            gap: { xs: 2, sm: 2.5, md: 4 },
+            backgroundColor: modernColors.surface.primary,
+            borderBottom: `1px solid ${modernColors.gray[200]}`,
+            borderRadius: modernBorderRadius.xxs,
           }}
         >
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              alignItems: 'center',
+              justifyContent: { xs: 'center', md: 'space-between' },
+              py: { xs: 2, sm: 2.5, md: 3 },
+              px: { xs: 2, sm: 3, md: 4 },
+              gap: { xs: 2, sm: 2.5, md: 4 },
+            }}
+          >
           {/* Logo Group */}
           <Box
             sx={{
@@ -119,6 +127,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ currentStep, onOpenResetDialog })
             )}
             <LanguageSelector />
           </Box>
+        </Box>
         </Box>
       </Container>
     </Box>
