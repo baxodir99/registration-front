@@ -94,7 +94,7 @@ const LanguageSelector: React.FC = () => {
         MenuProps={{
           PaperProps: {
             sx: {
-              borderRadius: modernBorderRadius.xs,
+              borderRadius: modernBorderRadius.xxs,
               mt: 1,
               border: `1px solid ${modernColors.gray[200]}`,
               boxShadow: "none",
