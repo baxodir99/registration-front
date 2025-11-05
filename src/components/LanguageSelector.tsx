@@ -95,7 +95,7 @@ const LanguageSelector: React.FC = () => {
           PaperProps: {
             sx: {
               borderRadius: modernBorderRadius.xxs,
-              mt: 1,
+              mt: 0.5,
               border: `1px solid ${modernColors.gray[200]}`,
               boxShadow: "none",
               "& .MuiList-root": {
@@ -105,24 +105,24 @@ const LanguageSelector: React.FC = () => {
           },
         }}
       >
-        {LANGUAGES.map((language) => (
-          <MenuItem
-            key={language.code}
-            value={language.code}
-            sx={{
-              py: 1.5,
-              px: 2,
-              "&:hover": {
-                backgroundColor: modernColors.gray[50],
-              },
-              "&.Mui-selected": {
-                backgroundColor: modernColors.primary[50],
+        {LANGUAGES.map((language) => {
+          // Hide currently selected language from dropdown
+          if (language.code === i18n.language) {
+            return null;
+          }
+          return (
+            <MenuItem
+              key={language.code}
+              value={language.code}
+              sx={{
+                py: 1.5,
+                px: 2,
                 "&:hover": {
-                  backgroundColor: modernColors.primary[100],
+                  backgroundColor: modernColors.gray[50],
                 },
-              },
-            }}
-          >
+              }}
+            >
+
             <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
               <FlagIcon countryCode={getFlagCode(language.code)} />
               <Typography
@@ -135,8 +135,9 @@ const LanguageSelector: React.FC = () => {
                 {language.name}
               </Typography>
             </Box>
-          </MenuItem>
-        ))}
+            </MenuItem>
+          );
+        })}
       </Select>
     </FormControl>
   );
