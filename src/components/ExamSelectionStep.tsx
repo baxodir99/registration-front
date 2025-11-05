@@ -222,18 +222,14 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
         exam: Number(formik.values.exam),
         region: Number(formik.values.region),
       };
-      
-      console.log('Loading exam dates with params:', params);
+
       const examDatesData = await apiService.getExamDates(params);
-      console.log('Loaded exam dates:', examDatesData);
-      
+
       setExamDates(examDatesData);
-      
+
       // Update available dates for calendar
       const dates = examDatesData.map(ed => new Date(ed.date));
       setAvailableDates(dates);
-      
-      console.log('Available dates set:', dates.map(d => d.toISOString()));
       
       // Reset examDate if it's not valid anymore
       if (formik.values.examDate && !examDatesData.find(ed => ed.id === Number(formik.values.examDate))) {
@@ -258,28 +254,22 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
   };
 
   const handleDateChange = (date: Dayjs | null) => {
-    console.log('handleDateChange called with:', date?.format('YYYY-MM-DD'));
     setSelectedDate(date);
-    
+
     if (date) {
       // Find the exam date that matches the selected date using consistent date comparison
       const matchingExamDate = examDates.find(ed => {
         const examDateDayjs = dayjs(ed.date);
         return examDateDayjs.format('YYYY-MM-DD') === date.format('YYYY-MM-DD');
       });
-      
-      console.log('Matching exam date found:', matchingExamDate);
-      
+
       if (matchingExamDate) {
         formik.setFieldValue('examDate', String(matchingExamDate.id));
-        console.log('Set examDate to:', matchingExamDate.id);
       } else {
         formik.setFieldValue('examDate', '');
-        console.log('No matching exam date, cleared examDate');
       }
     } else {
       formik.setFieldValue('examDate', '');
-      console.log('Date is null, cleared examDate');
     }
   };
 
@@ -300,20 +290,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
       const examDateDayjs = dayjs(ed.date);
       return examDateDayjs.format('YYYY-MM-DD') === date.format('YYYY-MM-DD');
     });
-    
-    // Debug only for first few dates to avoid spam
-    if (examDates.length > 0 && date.date() <= 3) {
-      console.log('getDateAvailability:', {
-        dateFormatted: date.format('YYYY-MM-DD'),
-        examDatesCount: examDates.length,
-        matchingExamDate: matchingExamDate ? {
-          id: matchingExamDate.id,
-          date: matchingExamDate.date,
-          status: matchingExamDate.availability_status
-        } : null
-      });
-    }
-    
+
     return matchingExamDate ? matchingExamDate.availability_status : null;
   };
 
@@ -349,16 +326,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
 
       const colors = getColors();
 
-      // Debug log for ALL days
-      if (typeof window !== 'undefined') {
-        console.log('[CustomDay] Rendering day:', day?.format('YYYY-MM-DD'), 'Status:', availabilityStatus, 'Colors:', colors);
-      }
-
-      // Remove event.stopPropagation() to allow proper date selection
       const handleDayClick = (event: React.MouseEvent) => {
-        if (availabilityStatus) {
-          console.log('CustomDay clicked:', day?.format('YYYY-MM-DD'), 'Status:', availabilityStatus);
-        }
         // Let the original onClick handler run
         if (otherProps.onClick) {
           otherProps.onClick(event);
