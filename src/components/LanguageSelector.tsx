@@ -95,7 +95,7 @@ const LanguageSelector: React.FC = () => {
           PaperProps: {
             sx: {
               borderRadius: modernBorderRadius.xxs,
-              mt: 0.5,
+              mt: 0,
               border: `1px solid ${modernColors.gray[200]}`,
               boxShadow: "none",
               py: 0,
@@ -108,8 +108,9 @@ const LanguageSelector: React.FC = () => {
             key={language.code}
             value={language.code}
             sx={{
-              py: 1,
+              py: 0,
               px: 2,
+              minHeight: "40px",
               "&:hover": {
                 backgroundColor: modernColors.gray[50],
               },
