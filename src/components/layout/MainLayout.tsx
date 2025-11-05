@@ -12,7 +12,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       sx={{
         backgroundColor: modernColors.gray[50],
         minHeight: '100vh',
-        pt: { xs: 3, sm: 4, md: 6 },
         pb: { xs: 4, sm: 6, md: 8 },
       }}
     >
