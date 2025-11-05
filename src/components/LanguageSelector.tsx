@@ -1,16 +1,42 @@
 import React from "react";
 import { FormControl, Select, MenuItem, Box, Typography } from "@mui/material";
-import { Language as LanguageIcon } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
 import { LANGUAGES } from "../constants";
 import { modernColors, modernBorderRadius } from "../theme/modernTheme";
 import { Language } from "../types";
+
+// SVG Flag component
+const FlagIcon: React.FC<{ countryCode: string }> = ({ countryCode }) => {
+  return (
+    <img
+      src={`https://flagcdn.com/w20/${countryCode}.png`}
+      srcSet={`https://flagcdn.com/w40/${countryCode}.png 2x`}
+      width="20"
+      alt={countryCode}
+      style={{
+        borderRadius: "2px",
+        objectFit: "cover",
+      }}
+    />
+  );
+};
 
 const LanguageSelector: React.FC = () => {
   const { i18n } = useTranslation();
 
   const handleLanguageChange = (language: Language) => {
     i18n.changeLanguage(language);
+  };
+
+  // Map language codes to country codes for flags
+  const getFlagCode = (langCode: string) => {
+    const flagMap: Record<string, string> = {
+      uz: "uz",
+      ru: "ru",
+      en: "us",
+      kaa: "uz",
+    };
+    return flagMap[langCode] || "uz";
   };
 
   return (
@@ -30,11 +56,8 @@ const LanguageSelector: React.FC = () => {
         renderValue={(selected) => {
           const lang = LANGUAGES.find((l) => l.code === selected);
           return (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <LanguageIcon
-                fontSize="small"
-                sx={{ color: modernColors.gray[600] }}
-              />
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <FlagIcon countryCode={getFlagCode(selected)} />
               <Typography
                 variant="body2"
                 sx={{
@@ -43,7 +66,7 @@ const LanguageSelector: React.FC = () => {
                   fontSize: "14px",
                 }}
               >
-                {lang?.flag} {lang?.name}
+                {lang?.name}
               </Typography>
             </Box>
           );
@@ -97,8 +120,8 @@ const LanguageSelector: React.FC = () => {
               },
             }}
           >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <span style={{ fontSize: "16px" }}>{language.flag}</span>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <FlagIcon countryCode={getFlagCode(language.code)} />
               <Typography
                 variant="body2"
                 sx={{
