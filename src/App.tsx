@@ -387,7 +387,7 @@ function App() {
                     sx={{
                       backgroundColor: modernColors.gray[50],
                       border: `1px solid ${modernColors.gray[200]}`,
-                      borderRadius: modernBorderRadius.md,
+                      borderRadius: modernBorderRadius.xs,
                       '&:hover': {
                         backgroundColor: modernColors.gray[100],
                       }
@@ -397,14 +397,7 @@ function App() {
                   </IconButton>
                 </Tooltip>
               )}
-              <Box sx={{
-                backgroundColor: modernColors.gray[50],
-                border: `1px solid ${modernColors.gray[200]}`,
-                borderRadius: modernBorderRadius.md,
-                padding: { xs: '6px 12px', sm: '8px 16px' },
-              }}>
-                <LanguageSelector />
-              </Box>
+              <LanguageSelector />
             </Box>
           </Box>
         </Container>

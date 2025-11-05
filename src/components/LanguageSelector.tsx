@@ -14,7 +14,15 @@ const LanguageSelector: React.FC = () => {
   };
 
   return (
-    <FormControl size="small" sx={{ minWidth: 140 }}>
+    <FormControl
+      size="small"
+      sx={{
+        minWidth: 140,
+        backgroundColor: modernColors.gray[50],
+        border: `1px solid ${modernColors.gray[200]}`,
+        borderRadius: modernBorderRadius.xs,
+      }}
+    >
       <Select
         value={i18n.language}
         onChange={(e) => handleLanguageChange(e.target.value as Language)}
@@ -48,23 +56,22 @@ const LanguageSelector: React.FC = () => {
             color: "text.primary",
           },
           "& .MuiOutlinedInput-notchedOutline": {
-            border: `1px solid ${modernColors.gray[300]}`,
-            borderRadius: modernBorderRadius.xs,
+            border: "none",
           },
           "& .MuiSvgIcon-root": {
             color: modernColors.gray[600],
           },
           "&:hover .MuiOutlinedInput-notchedOutline": {
-            border: `1px solid ${modernColors.gray[400]}`,
+            border: "none",
           },
           "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-            border: `2px solid ${modernColors.primary[600]}`,
+            border: "none",
           },
         }}
         MenuProps={{
           PaperProps: {
             sx: {
-              borderRadius: modernBorderRadius.sm,
+              borderRadius: modernBorderRadius.xs,
               mt: 1,
               border: `1px solid ${modernColors.gray[200]}`,
               boxShadow: "none",
