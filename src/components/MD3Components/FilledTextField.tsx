@@ -6,7 +6,7 @@ import { modernBorderRadius, modernColors } from '../../theme/modernTheme';
 // Modern Outlined TextField - Clean design
 const ModernTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
-    borderRadius: modernBorderRadius.lg,
+    borderRadius: modernBorderRadius.xs,
     backgroundColor: '#FFFFFF',
     transition: 'all 0.2s ease-in-out',
     '& fieldset': {

@@ -440,7 +440,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
       </Typography>
 
       {error && (
-        <Alert severity="error" sx={{ mb: { xs: 2, sm: 3, md: 4 }, borderRadius: modernBorderRadius.lg }}>
+        <Alert severity="error" sx={{ mb: { xs: 2, sm: 3, md: 4 }, borderRadius: modernBorderRadius.xs }}>
           {error}
         </Alert>
       )}
@@ -540,7 +540,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
           )}
 
           {loading.examDates ? (
-            <Skeleton variant="rectangular" height={320} sx={{ borderRadius: modernBorderRadius.lg }} />
+            <Skeleton variant="rectangular" height={320} sx={{ borderRadius: modernBorderRadius.xs }} />
           ) : (
             <>
               {/* Debug info */}
@@ -619,7 +619,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
                 mt: { xs: 3, sm: 4, md: 6 },
                 p: { xs: 3, sm: 4, md: 6 },
                 backgroundColor: modernColors.gray[50],
-                borderRadius: modernBorderRadius.lg,
+                borderRadius: modernBorderRadius.xs,
                 border: `1px solid ${modernColors.gray[200]}`
               }}>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
@@ -734,7 +734,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
                   mt: { xs: 2, sm: 2 },
                   p: { xs: 2, sm: 2.5, md: 3 },
                   backgroundColor: modernColors.primary[50],
-                  borderRadius: modernBorderRadius.lg,
+                  borderRadius: modernBorderRadius.xs,
                   border: `1px solid ${modernColors.primary[200]}`
                 }}>
                   <Typography variant="body2" sx={{
@@ -826,7 +826,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
                   color="primary"
                   size="medium"
                   sx={{
-                    borderRadius: modernBorderRadius.lg,
+                    borderRadius: modernBorderRadius.xs,
                     fontWeight: 600,
                     fontSize: '14px',
                     px: 2,
@@ -859,7 +859,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
             !formik.isValid
           }
           sx={{
-            borderRadius: modernBorderRadius.lg,
+            borderRadius: modernBorderRadius.xs,
             textTransform: 'none',
             px: { xs: 4, sm: 5, md: 6 },
             py: { xs: 2, sm: 2.5, md: 3 },

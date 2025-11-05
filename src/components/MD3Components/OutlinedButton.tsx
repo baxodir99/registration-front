@@ -5,7 +5,7 @@ import { modernBorderRadius, modernColors } from '../../theme/modernTheme';
 
 // Modern Outlined Button - Clean flat design
 const ModernOutlinedButton = styled(Button)(({ theme }) => ({
-  borderRadius: modernBorderRadius.lg,
+  borderRadius: modernBorderRadius.xs,
   textTransform: 'none',
   fontWeight: 500,
   fontSize: '14px',

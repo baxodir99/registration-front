@@ -425,7 +425,7 @@ function App() {
                 mb: { xs: 4, sm: 6, md: 8 },
                 p: { xs: 2, sm: 3, md: 4, lg: 6 },
                 backgroundColor: modernColors.surface.primary,
-                borderRadius: modernBorderRadius['2xl'],
+                borderRadius: modernBorderRadius.md,
                 border: `1px solid ${modernColors.gray[200]}`,
               }}
             >
@@ -481,7 +481,7 @@ function App() {
             sx={{
               p: { xs: 2, sm: 3, md: 4, lg: 6, xl: 8 },
               backgroundColor: modernColors.surface.primary,
-              borderRadius: modernBorderRadius['2xl'],
+              borderRadius: modernBorderRadius.md,
               border: `1px solid ${modernColors.gray[200]}`,
               position: 'relative',
               overflow: 'visible',
@@ -494,7 +494,7 @@ function App() {
                 right: 0,
                 height: '4px',
                 backgroundColor: modernColors.primary[600],
-                borderRadius: `${modernBorderRadius['2xl']}px ${modernBorderRadius['2xl']}px 0 0`,
+                borderRadius: `${modernBorderRadius.md}px ${modernBorderRadius.md}px 0 0`,
               }
             }}
           >

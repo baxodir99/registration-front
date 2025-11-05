@@ -100,7 +100,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
       </Typography>
 
       {error && (
-        <Alert severity="error" sx={{ mb: { xs: 2, sm: 3, md: 4 }, borderRadius: modernBorderRadius.lg }}>
+        <Alert severity="error" sx={{ mb: { xs: 2, sm: 3, md: 4 }, borderRadius: modernBorderRadius.xs }}>
           {error}
         </Alert>
       )}
@@ -305,7 +305,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
           onClick={onPrevious}
           disabled={loading}
           sx={{
-            borderRadius: modernBorderRadius.lg + 'px',
+            borderRadius: modernBorderRadius.xs + 'px',
             textTransform: 'none',
             px: { xs: 2, sm: 2.5, md: 3 },
             py: { xs: 1.2, sm: 1.4, md: 1.5 },
@@ -328,7 +328,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
           }
           size="large"
           sx={{
-            borderRadius: modernBorderRadius.lg + 'px',
+            borderRadius: modernBorderRadius.xs + 'px',
             textTransform: 'none',
             px: { xs: 2, sm: 2.5, md: 3 },
             py: { xs: 1.2, sm: 1.4, md: 1.5 },

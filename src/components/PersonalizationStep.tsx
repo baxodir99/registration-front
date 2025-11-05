@@ -141,13 +141,13 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
       </Typography>
 
       {error && (
-        <Alert severity="error" sx={{ mb: { xs: 3, sm: 4, md: 6 }, borderRadius: modernBorderRadius.lg }}>
+        <Alert severity="error" sx={{ mb: { xs: 3, sm: 4, md: 6 }, borderRadius: modernBorderRadius.xs }}>
           {error}
         </Alert>
       )}
 
       {userProfile && (
-        <Alert severity="success" sx={{ mb: { xs: 3, sm: 4, md: 6 }, borderRadius: modernBorderRadius.lg }}>
+        <Alert severity="success" sx={{ mb: { xs: 3, sm: 4, md: 6 }, borderRadius: modernBorderRadius.xs }}>
           {t('messages.personalization_success')}
         </Alert>
       )}

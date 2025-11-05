@@ -62,7 +62,7 @@ const ModernSurfaceCard = styled(Card)<{ surfaceVariant: SurfaceVariant }>(
     };
 
     return {
-      borderRadius: modernBorderRadius.xl,
+      borderRadius: modernBorderRadius.sm,
       boxShadow: 'none', // No shadows in modern design
       transition: 'all 0.2s ease-in-out',
       ...getStyles(),
