@@ -20,12 +20,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({ currentStep, onOpenResetDialog })
       sx={{
         backgroundColor: modernColors.surface.primary,
         borderBottom: `1px solid ${modernColors.gray[200]}`,
-        mx: { xs: 1.5, sm: 2, md: 3, lg: 4 },
-        borderBottomLeftRadius: modernBorderRadius.xs,
-        borderBottomRightRadius: modernBorderRadius.xs,
       }}
     >
-      <Container maxWidth="lg" disableGutters sx={{ px: { xs: 1.5, sm: 2, md: 3, lg: 4 } }}>
+      <Container maxWidth="lg" sx={{ px: { xs: 1.5, sm: 2, md: 3, lg: 4 } }}>
         <Box
           sx={{
             display: 'flex',
