@@ -33,7 +33,7 @@ const ProgressStepper: React.FC<ProgressStepperProps> = ({ currentStep }) => {
         mb: { xs: 2, sm: 2.5, md: 3 },
         p: { xs: 2, sm: 3, md: 4, lg: 6 },
         backgroundColor: modernColors.surface.primary,
-        borderRadius: modernBorderRadius.xl,
+        borderRadius: modernBorderRadius.xs,
         border: `1px solid ${modernColors.gray[200]}`,
       }}
     >
