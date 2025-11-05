@@ -19,7 +19,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ currentStep, onOpenResetDialog })
     <Box
       sx={{
         backgroundColor: modernColors.gray[50],
-        pb: { xs: 3, sm: 4, md: 6 },
+        pb: { xs: 2, sm: 2.5, md: 3 },
       }}
     >
       <Container maxWidth="lg" sx={{ px: { xs: 1.5, sm: 2, md: 3, lg: 4 } }}>
