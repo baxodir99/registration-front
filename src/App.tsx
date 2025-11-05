@@ -307,12 +307,9 @@ function App() {
         sx={{
           backgroundColor: modernColors.surface.primary,
           borderBottom: `1px solid ${modernColors.gray[200]}`,
-          mx: { xs: 1.5, sm: 2, md: 3, lg: 4 },
-          borderBottomLeftRadius: modernBorderRadius.xs,
-          borderBottomRightRadius: modernBorderRadius.xs,
         }}
       >
-        <Container maxWidth="lg" disableGutters>
+        <Container maxWidth="lg" sx={{ px: { xs: 1.5, sm: 2, md: 3, lg: 4 } }}>
           <Box sx={{
             display: 'flex',
             flexDirection: { xs: 'column', md: 'row' },
@@ -320,7 +317,6 @@ function App() {
             justifyContent: { xs: 'center', md: 'space-between' },
             py: { xs: 2, sm: 2.5, md: 3 },
             gap: { xs: 2, sm: 2.5, md: 4 },
-            px: { xs: 2, sm: 3 },
           }}>
             {/* Logo Group */}
             <Box sx={{
