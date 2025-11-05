@@ -123,8 +123,9 @@ const customSpacingValues = {
 // Using small radius values for clean, modern appearance
 const borderRadius = {
   none: 0,
-  xs: 4,    // Minimal radius (main containers, minimal rounding)
-  sm: 8,    // Small radius (cards, small elements)
+  xxs: 2,   // Ultra minimal (main containers, barely visible rounding)
+  xs: 4,    // Minimal radius (alerts, small elements)
+  sm: 8,    // Small radius (cards, nested elements)
   md: 12,   // Medium radius (buttons, alerts)
   lg: 16,   // Large radius (modals, large cards)
   xl: 20,   // Extra large radius
