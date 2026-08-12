@@ -94,14 +94,57 @@ export interface InvoiceRequestForm {
   email: string;
   region: number;
   terms_accepted: boolean;
+  promocode?: string;
+}
+
+// PromoCode Types
+export interface PromoCode {
+  id: number;
+  code: string;
+  discount_type: 'percent' | 'amount';
+  discount_value: number;
+  valid_until: string;
+  is_active: boolean;
 }
 
 // Payment Types
 export interface PaymentResponse {
   invoice: string;
-  pay_url: string;
+  pay_url: string | null;
   amount: number;
-  info_doc?: string;
+  info_doc?: string | null;
+}
+
+// ATMOS Card Payment Types
+export interface BindCardRequest {
+  card_number: string;   // 16 digits, no spaces
+  expiry: string;        // "YYmm" e.g. "2612" for Dec 2026
+}
+
+export interface BindCardResponse {
+  status: 0 | 1;
+  message: string;
+  transaction_id: string;
+}
+
+export interface BindCardConfirmRequest {
+  transaction_id: string;
+  otp: string;
+  invoice: string;
+}
+
+export interface BindCardConfirmResponse {
+  status: 0 | 1;
+  message: string;
+}
+
+export interface ChargeCardRequest {
+  invoice: string;
+}
+
+export interface ChargeCardResponse {
+  status: 0 | 1;
+  message: string;
 }
 
 // Form Step Types
@@ -117,6 +160,8 @@ export interface FormData {
   phone?: string;
   email?: string;
   terms_accepted?: boolean;
+  promocode?: string;
+  promocodeData?: PromoCode;
 }
 
 export enum FormStep {

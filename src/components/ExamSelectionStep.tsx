@@ -9,7 +9,10 @@ import {
   Skeleton,
   Alert,
   CardContent,
-  Chip,
+  TextField,
+  InputAdornment,
+  IconButton,
+  CircularProgress,
   useMediaQuery,
 } from '@mui/material';
 import { StaticDatePicker } from '@mui/x-date-pickers/StaticDatePicker';
@@ -32,7 +35,11 @@ import {
   Exam,
   ExamDate,
   FormData,
+  PromoCode,
 } from '../types';
+import {
+  Close as CloseIcon,
+} from '@mui/icons-material';
 
 // Availability status color constants for consistency
 const AVAILABILITY_COLORS = {
@@ -120,12 +127,20 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
   
   // Selected exam for price display
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
-  
+
   // Selected date for calendar
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
-  
+
   // Available dates for the calendar
   const [availableDates, setAvailableDates] = useState<Date[]>([]);
+
+  // Promocode state
+  const [promocodeInput, setPromocodeInput] = useState(initialData?.promocode || '');
+  const [promocodeData, setPromocodeData] = useState<PromoCode | null>(initialData?.promocodeData || null);
+  const [promocodeLoading, setPromocodeLoading] = useState(false);
+  const [promocodeError, setPromocodeError] = useState<string | null>(null);
+  const [promocodeSuccess, setPromocodeSuccess] = useState(false);
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
 
   const formik = useFormik({
     initialValues: {
@@ -141,6 +156,8 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
         region: Number(values.region),
         exam: Number(values.exam),
         examDate: Number(values.examDate),
+        promocode: promocodeData ? promocodeInput : undefined,
+        promocodeData: promocodeData || undefined,
       };
       onNext(formData);
     },
@@ -155,6 +172,8 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
       region: formik.values.region ? Number(formik.values.region) : undefined,
       exam: formik.values.exam ? Number(formik.values.exam) : undefined,
       examDate: formik.values.examDate ? Number(formik.values.examDate) : undefined,
+      promocode: promocodeData ? promocodeInput : undefined,
+      promocodeData: promocodeData || undefined,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -162,6 +181,8 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
     formik.values.region,
     formik.values.exam,
     formik.values.examDate,
+    promocodeInput,
+    promocodeData,
     // onDataChange is intentionally omitted to prevent infinite loop
   ]);
 
@@ -218,7 +239,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
     try {
       setLocalLoading(prev => ({ ...prev, examDates: true }));
       setError(null);
-      
+
       const params = {
         exam: Number(formik.values.exam),
         region: Number(formik.values.region),
@@ -231,13 +252,13 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
       // Update available dates for calendar
       const dates = examDatesData.map(ed => new Date(ed.date));
       setAvailableDates(dates);
-      
+
       // Reset examDate if it's not valid anymore
       if (formik.values.examDate && !examDatesData.find(ed => ed.id === Number(formik.values.examDate))) {
         formik.setFieldValue('examDate', '');
         setSelectedDate(null);
       }
-      
+
       setLocalLoading(prev => ({ ...prev, examDates: false }));
     } catch (error) {
       console.error('Error loading exam dates:', error);
@@ -248,6 +269,108 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
       setAvailableDates([]);
     }
   };
+
+  // Calculate price with promocode
+  const originalAmount = selectedExam ? parseFloat(selectedExam.amount) : 0;
+  const calculateDiscountedPrice = () => {
+    if (!promocodeData || !promocodeData.is_active) {
+      return originalAmount;
+    }
+
+    if (promocodeData.discount_type === 'percent') {
+      const discount = (promocodeData.discount_value / 100) * originalAmount;
+      return Math.max(0, originalAmount - discount);
+    } else if (promocodeData.discount_type === 'amount') {
+      return Math.max(0, originalAmount - promocodeData.discount_value);
+    }
+
+    return originalAmount;
+  };
+
+  const finalAmount = calculateDiscountedPrice();
+  const discountAmount = originalAmount - finalAmount;
+
+  // Auto-check promocode with debounce
+  const checkPromocodeAuto = async (code: string) => {
+    if (!code.trim() || code.trim().length < 3) {
+      setPromocodeData(null);
+      setPromocodeError(null);
+      setPromocodeSuccess(false);
+      return;
+    }
+
+    try {
+      setPromocodeLoading(true);
+      setPromocodeError(null);
+      setPromocodeSuccess(false);
+
+      const response = await apiService.checkPromocode(code.trim());
+
+      if (response.status === 1 && response.data) {
+        setPromocodeData(response.data);
+        setPromocodeSuccess(true);
+        setPromocodeError(null);
+      } else {
+        setPromocodeError(response.message || t('confirmation.promocode_invalid'));
+        setPromocodeData(null);
+        setPromocodeSuccess(false);
+      }
+    } catch (error: any) {
+      console.error('Promocode check error:', error);
+      setPromocodeError(error.response?.data?.message || t('confirmation.promocode_invalid'));
+      setPromocodeData(null);
+      setPromocodeSuccess(false);
+    } finally {
+      setPromocodeLoading(false);
+    }
+  };
+
+  // Handle promocode input change with debounce
+  const handlePromocodeChange = (value: string) => {
+    const upperValue = value.toUpperCase();
+    setPromocodeInput(upperValue);
+
+    // Clear previous timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    // Reset states when input is cleared
+    if (!upperValue.trim()) {
+      setPromocodeData(null);
+      setPromocodeError(null);
+      setPromocodeSuccess(false);
+      setPromocodeLoading(false);
+      return;
+    }
+
+    // Set new timer for auto-check after 500ms
+    const timer = setTimeout(() => {
+      checkPromocodeAuto(upperValue);
+    }, 500);
+
+    setDebounceTimer(timer);
+  };
+
+  // Handle promocode removal
+  const handleRemovePromocode = () => {
+    setPromocodeInput('');
+    setPromocodeData(null);
+    setPromocodeError(null);
+    setPromocodeSuccess(false);
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+  };
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+    };
+  }, [debounceTimer]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1079,27 +1202,145 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
           )}
         </Box>
 
-        {/* Price Display */}
+        {/* Price Display with Promocode */}
         {selectedExam && (
           <SurfaceCard surfaceVariant="elevated" sx={{ mt: 2 }}>
             <CardContent sx={{ p: 3 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h4" sx={{ fontSize: '18px', fontWeight: 600 }}>
+              <Box sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                gap: 2,
+                flexWrap: { xs: 'wrap', sm: 'nowrap' }
+              }}>
+                {/* 1. Title - Narxi */}
+                <Typography variant="h4" sx={{ fontSize: '18px', fontWeight: 600, flexShrink: 0 }}>
                   {t('exam_selection.amount')}:
                 </Typography>
-                <Chip 
-                  label={`${selectedExam.amount} so'm`}
-                  color="primary"
-                  size="medium"
-                  sx={{
-                    borderRadius: modernBorderRadius.xs,
-                    fontWeight: 600,
-                    fontSize: '14px',
-                    px: 2,
-                    py: 1,
-                    height: 'auto',
-                  }}
-                />
+
+                {/* 2. Vertical Layout: Price Display + Promocode Input */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, flex: 1, alignItems: 'flex-end' }}>
+                  {/* Price Display */}
+                  <Box sx={{ flexShrink: 0 }}>
+                    {promocodeData && discountAmount > 0 ? (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.3 }}>
+                        <Typography variant="body2" sx={{
+                          textDecoration: 'line-through',
+                          color: 'text.secondary',
+                          fontSize: '14px',
+                          fontWeight: 400,
+                          lineHeight: 1.2
+                        }}>
+                          {originalAmount.toLocaleString()} so'm
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
+                          <Typography sx={{
+                            color: '#000000',
+                            fontWeight: 800,
+                            fontSize: { xs: '34px', sm: '38px', md: '42px' },
+                            lineHeight: 1.2
+                          }}>
+                            {Math.floor(finalAmount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}
+                          </Typography>
+                          <Typography sx={{
+                            color: '#000000',
+                            fontWeight: 400,
+                            fontSize: { xs: '14px', sm: '15px', md: '16px' },
+                            lineHeight: 1.2
+                          }}>
+                            so'm
+                          </Typography>
+                        </Box>
+                        <Typography variant="caption" sx={{
+                          color: 'success.main',
+                          fontWeight: 600,
+                          fontSize: '12px',
+                          lineHeight: 1.2
+                        }}>
+                          -{discountAmount.toLocaleString()} so'm ({promocodeData.discount_type === 'percent' ? `${promocodeData.discount_value}%` : ''})
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
+                        <Typography sx={{
+                          color: '#000000',
+                          fontWeight: 800,
+                          fontSize: { xs: '34px', sm: '38px', md: '42px' },
+                          lineHeight: 1.2
+                        }}>
+                          {Math.floor(parseFloat(selectedExam.amount)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}
+                        </Typography>
+                        <Typography sx={{
+                          color: '#000000',
+                          fontWeight: 400,
+                          fontSize: { xs: '14px', sm: '15px', md: '16px' },
+                          lineHeight: 1.2
+                        }}>
+                          so'm
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+
+                  {/* Promocode Input - Flat */}
+                  <Box sx={{ width: { xs: '100%', sm: '180px' }, maxWidth: '200px' }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      variant="standard"
+                      placeholder={t('confirmation.promocode_placeholder')}
+                      value={promocodeInput}
+                      onChange={(e) => handlePromocodeChange(e.target.value)}
+                      disabled={promocodeLoading}
+                      error={!!promocodeError}
+                      helperText={
+                        promocodeLoading
+                          ? t('confirmation.promocode_checking')
+                          : promocodeError
+                          ? promocodeError
+                          : promocodeSuccess && promocodeData
+                          ? `✓ ${t('confirmation.promocode_applied')}: ${promocodeData.code}`
+                          : ''
+                      }
+                      InputProps={{
+                        startAdornment: promocodeLoading && (
+                          <InputAdornment position="start">
+                            <CircularProgress size={16} />
+                          </InputAdornment>
+                        ),
+                        endAdornment: promocodeInput && (
+                          <InputAdornment position="end">
+                            <IconButton
+                              size="small"
+                              onClick={handleRemovePromocode}
+                              edge="end"
+                              sx={{ padding: '4px' }}
+                            >
+                              <CloseIcon fontSize="small" />
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiInput-root': {
+                          fontSize: '14px',
+                          paddingRight: promocodeInput ? '0px' : '0px',
+                        },
+                        '& .MuiInput-input': {
+                          paddingRight: '0px',
+                        },
+                        '& .MuiInput-root:before': {
+                          borderBottomColor: 'divider',
+                        },
+                        '& .MuiFormHelperText-root': {
+                          color: promocodeSuccess ? 'success.main' : promocodeError ? 'error.main' : 'text.secondary',
+                          fontWeight: promocodeSuccess ? 500 : 400,
+                          fontSize: '11px',
+                        }
+                      }}
+                    />
+                  </Box>
+                </Box>
               </Box>
             </CardContent>
           </SurfaceCard>

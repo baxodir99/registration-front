@@ -97,10 +97,16 @@ function App() {
         );
 
       case FormStep.PAYMENT:
+        // Calculate original amount
+        const selectedExam = state.exams.find(e => e.id === state.formData.exam);
+        const originalAmount = selectedExam ? parseFloat(selectedExam.amount) : undefined;
+
         return (
           <PaymentStep
             paymentData={state.paymentData!}
             onNewRegistration={handlers.handleNewRegistration}
+            formData={state.formData}
+            originalAmount={originalAmount}
           />
         );
 

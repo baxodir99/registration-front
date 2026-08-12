@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import { storageService } from '../utils/storage';
 import { FormData, FormStep, PaymentResponse } from '../types';
 
@@ -24,6 +25,7 @@ export const useAppHandlers = ({
   loadExams,
   loadExamDates,
 }: UseAppHandlersProps) => {
+  const { t } = useTranslation();
   const handleNext = async (stepData: Partial<FormData> | { paymentData: PaymentResponse }) => {
     if ('paymentData' in stepData) {
       // Payment step
@@ -69,7 +71,7 @@ export const useAppHandlers = ({
     setFormData({});
     setPaymentData(null);
     storageService.clearAll();
-    toast.info("Yangi ro'yxatdan o'tish boshlandi");
+    toast.info(t('messages.new_registration_started'));
   };
 
   const handleResetData = () => {
@@ -78,7 +80,7 @@ export const useAppHandlers = ({
     setFormData({});
     setPaymentData(null);
     storageService.clearAll();
-    toast.info("Ma'lumotlar tozalandi. Qaytadan boshlashingiz mumkin");
+    toast.info(t('messages.data_cleared'));
   };
 
   const handleOpenResetDialog = () => {

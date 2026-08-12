@@ -11,6 +11,13 @@ import {
   PersonalizationCheckForm,
   InvoiceRequestForm,
   PaymentResponse,
+  PromoCode,
+  BindCardRequest,
+  BindCardResponse,
+  BindCardConfirmRequest,
+  BindCardConfirmResponse,
+  ChargeCardRequest,
+  ChargeCardResponse,
 } from '../types';
 
 // Create axios instance
@@ -107,6 +114,44 @@ export const apiService = {
   createInvoice: async (data: InvoiceRequestForm): Promise<ApiResponse<PaymentResponse>> => {
     const response = await api.post<ApiResponse<PaymentResponse>>(
       API_ENDPOINTS.CREATE_INVOICE,
+      data
+    );
+    return response.data;
+  },
+
+  // Check promocode
+  checkPromocode: async (code: string): Promise<ApiResponse<PromoCode>> => {
+    const response = await api.get<ApiResponse<PromoCode>>(
+      API_ENDPOINTS.PROMOCODES,
+      { params: { code } }
+    );
+    return response.data;
+  },
+
+  // ATMOS card payment — step 1: initiate card binding (sends SMS OTP)
+  bindCard: async (data: BindCardRequest): Promise<BindCardResponse> => {
+    const response = await api.post<BindCardResponse>(
+      API_ENDPOINTS.BIND_CARD,
+      data
+    );
+    return response.data;
+  },
+
+  // ATMOS card payment — step 2: confirm OTP, backend stores card token on Payment
+  confirmBindCard: async (
+    data: BindCardConfirmRequest
+  ): Promise<BindCardConfirmResponse> => {
+    const response = await api.post<BindCardConfirmResponse>(
+      API_ENDPOINTS.BIND_CARD_CONFIRM,
+      data
+    );
+    return response.data;
+  },
+
+  // ATMOS card payment — step 3: charge the bound card for the invoice
+  chargeCard: async (data: ChargeCardRequest): Promise<ChargeCardResponse> => {
+    const response = await api.post<ChargeCardResponse>(
+      API_ENDPOINTS.PAY_CREATE,
       data
     );
     return response.data;

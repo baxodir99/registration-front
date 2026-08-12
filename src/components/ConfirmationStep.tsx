@@ -3,7 +3,6 @@ import {
   Box,
   Typography,
   Divider,
-  Chip,
   Alert,
   CircularProgress,
 } from '@mui/material';
@@ -54,6 +53,29 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
   const exam = exams.find(e => e.id === formData.exam);
   const examDate = examDates.find(ed => ed.id === formData.examDate);
 
+  // Get promocode from formData
+  const promocodeData = formData.promocodeData;
+  const originalAmount = exam ? parseFloat(exam.amount) : 0;
+
+  // Calculate price with promocode
+  const calculateDiscountedPrice = () => {
+    if (!promocodeData || !promocodeData.is_active) {
+      return originalAmount;
+    }
+
+    if (promocodeData.discount_type === 'percent') {
+      const discount = (promocodeData.discount_value / 100) * originalAmount;
+      return Math.max(0, originalAmount - discount);
+    } else if (promocodeData.discount_type === 'amount') {
+      return Math.max(0, originalAmount - promocodeData.discount_value);
+    }
+
+    return originalAmount;
+  };
+
+  const finalAmount = calculateDiscountedPrice();
+  const discountAmount = originalAmount - finalAmount;
+
   const handleConfirm = async () => {
     try {
       setLoading(true);
@@ -66,6 +88,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
         email: formData.email!,
         region: formData.region!,
         terms_accepted: formData.terms_accepted!,
+        promocode: formData.promocode || undefined,
       };
 
       const response = await apiService.createInvoice(invoiceData);
@@ -172,16 +195,32 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
               <Typography variant="body2" color="text.secondary">
                 {t('confirmation.payment_amount')}
               </Typography>
-              <Chip 
-                label={`${exam?.amount} so'm`}
-                color="primary"
-                size="medium"
-                sx={{
-                  borderRadius: modernBorderRadius.sm + 'px',
-                  fontWeight: 500,
-                  fontSize: '14px',
-                }}
-              />
+              {promocodeData && discountAmount > 0 ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 1 }}>
+                  <Typography variant="body1" sx={{
+                    textDecoration: 'line-through',
+                    color: 'text.secondary',
+                    fontSize: '16px'
+                  }}>
+                    {originalAmount.toLocaleString()} {t('payment.currency')}
+                  </Typography>
+                  <Typography variant="h6" sx={{
+                    color: 'success.main',
+                    fontWeight: 700,
+                    fontSize: '20px'
+                  }}>
+                    {finalAmount.toLocaleString()} {t('payment.currency')}
+                  </Typography>
+                </Box>
+              ) : (
+                <Typography variant="h6" sx={{
+                  mt: 1,
+                  fontWeight: 600,
+                  fontSize: '18px'
+                }}>
+                  {originalAmount.toLocaleString()} {t('payment.currency')}
+                </Typography>
+              )}
             </Box>
           </Box>
         </SurfaceCard>

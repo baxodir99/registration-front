@@ -16,8 +16,9 @@
     "confirm": "Confirm"
   },
   "header": {
-    "title": "Scientific-Educational Practical Center under the Agency for Assessment of Knowledge and Skills\nElectronic Platform for Registration for International Examinations",
-    "language": "Language"
+    "title": "Scientific and Educational Practical Center under the Agency for the Assessment of Knowledge and Skills\nElectronic platform for registration for international examinations",
+    "language": "Language",
+    "reset_tooltip": "Clear data"
   },
   "steps": {
     "exam_selection": "Exam Selection",
@@ -100,20 +101,73 @@
     "personal_info": "Personal Information",
     "contact_info": "Contact Information",
     "payment_amount": "Payment Amount",
-    "confirm_registration": "Confirm Registration"
+    "original_amount": "Original Price",
+    "discount": "Discount",
+    "final_amount": "Final Price",
+    "confirm_registration": "Confirm Registration",
+    "promocode": "Promo Code",
+    "promocode_placeholder": "Do you have a promo code?",
+    "apply_promocode": "Apply Promo Code",
+    "promocode_applied": "Promo code applied successfully!",
+    "promocode_invalid": "Promo code is invalid or expired",
+    "promocode_checking": "Checking promo code...",
+    "remove_promocode": "Remove promo code"
   },
   "payment": {
     "title": "Payment",
     "invoice_created": "Invoice created",
     "invoice_number": "Invoice Number",
     "amount": "Amount",
+    "currency": "UZS",
     "pay_now": "Pay Now",
-    "payment_instructions": "Click the button to pay and complete the payment on the redirected page",
+    "payment_instructions": "Enter your card details to complete the payment",
     "exam_info_title": "Exam Information",
     "exam_info_description": "Document containing all information about the exam address, date and time.",
     "download_exam_info": "Download Exam Information",
     "exam_info_note": "Save this document and bring it with you on the exam day",
-    "new_registration": "New Registration"
+    "new_registration": "New Registration",
+    "redirect": {
+      "title": "Registration completed",
+      "subtitle": "Click the button below to finish the payment",
+      "instructions": "Pressing \"Go to payment\" opens the payment provider's page in a new tab. Enter your card details there and complete the payment.",
+      "cta": "Go to payment",
+      "opened_hint": "New tab didn't open? Check that pop-ups are allowed in your browser.",
+      "after_payment_note": "Once the payment is completed, exam location and time details will be sent to your phone via SMS. For help: 1195",
+      "open_again": "Reopen payment page"
+    },
+    "card": {
+      "title": "Card details",
+      "subtitle": "Enter your card number to pay securely",
+      "step_card": "Card",
+      "step_otp": "Verify",
+      "step_done": "Done",
+      "invoice_label": "Invoice number",
+      "total_label": "Total to pay",
+      "card_number": "Card number",
+      "card_number_hint": "16-digit card number",
+      "expiry": "Expiry date",
+      "expiry_hint": "MM/YY",
+      "secure_note": "Your card details are transmitted securely and encrypted",
+      "continue": "Continue",
+      "otp_title": "SMS code sent",
+      "otp_subtitle": "We sent a 6-digit code to card **** **** **** {{last4}}",
+      "otp": "SMS code",
+      "otp_hint": "Enter the 6-digit code from your bank's SMS",
+      "code_not_received": "Didn't get the code?",
+      "resend": "Resend",
+      "resend_in": "Resend in {{seconds}}s",
+      "change_card": "Change card",
+      "confirm_pay": "Confirm & Pay",
+      "processing": "Processing payment...",
+      "success_title": "Payment successful!",
+      "success_subtitle": "You are successfully registered",
+      "success_toast": "Payment completed successfully",
+      "success_info": "Exam location and time details will be sent to your phone via SMS. For help: 1195",
+      "paid_badge": "Paid",
+      "bind_failed": "Could not bind the card. Please check the details and try again",
+      "otp_failed": "Invalid confirmation code. Please try again",
+      "charge_failed": "Payment could not be processed. Please contact your bank"
+    }
   },
   "messages": {
     "data_saved": "Data saved",
@@ -121,6 +175,8 @@
     "personalization_failed": "Personal data not verified",
     "registration_success": "Registration completed successfully",
     "registration_failed": "Registration error occurred",
-    "invalid_data": "Invalid data entered"
+    "invalid_data": "Invalid data entered",
+    "new_registration_started": "New registration started",
+    "data_cleared": "Data cleared. You can start over"
   }
 }

@@ -111,7 +111,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ currentStep, onOpenResetDialog })
             }}
           >
             {currentStep !== FormStep.PAYMENT && (
-              <Tooltip title="Ma'lumotlarni tozalash">
+              <Tooltip title={t('header.reset_tooltip')}>
                 <IconButton
                   onClick={onOpenResetDialog}
                   size={isMobile ? 'small' : 'medium'}

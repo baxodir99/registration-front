@@ -9,6 +9,10 @@ export const API_ENDPOINTS = {
   EXAM_DATES: "/main/exam-dates/",
   CHECK_PERSONALIZATION: "/account/check-personalization/",
   CREATE_INVOICE: "/main/invoice-create/",
+  PROMOCODES: "/main/promocodes/",
+  BIND_CARD: "/main/bind-card/",
+  BIND_CARD_CONFIRM: "/main/bind-card/confirm/",
+  PAY_CREATE: "/main/pay/create/",
 } as const;
 
 
@@ -17,6 +21,9 @@ export const VALIDATION = {
   PNFL_LENGTH: 14,
   PASSPORT_PATTERN: /^[A-Z]{2}\d{7}$/,
   PHONE_PATTERN: /^\+998\d{9}$/,
+  CARD_LENGTH: 16,
+  OTP_LENGTH: 6,
+  EXPIRY_PATTERN: /^(0[1-9]|1[0-2])\/\d{2}$/,
 } as const;
 
 // Session Storage Keys
