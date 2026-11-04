@@ -19,6 +19,8 @@ interface PaymentStepProps extends PaymentDetails {
   formData?: FormData;
   originalAmount?: number;
   onSubStepChange: (subStep: SubStep) => void;
+  /** Oxirgi tugma matni (standart: "Yangi ro'yxatdan o'tish") */
+  finishLabel?: string;
 }
 
 const RESEND_COOLDOWN = 60;
@@ -42,6 +44,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   formData,
   originalAmount,
   onSubStepChange,
+  finishLabel,
   ...details
 }) => {
   const hasDiscount =
@@ -58,6 +61,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
         originalAmount={originalAmount}
         hasDiscount={hasDiscount}
         onNewRegistration={onNewRegistration}
+        finishLabel={finishLabel}
         {...details}
       />
     );
@@ -70,6 +74,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
       hasDiscount={hasDiscount}
       onNewRegistration={onNewRegistration}
       onSubStepChange={onSubStepChange}
+      finishLabel={finishLabel}
       details={details}
     />
   );
@@ -81,6 +86,7 @@ interface AtmosCardFlowProps {
   hasDiscount: boolean;
   onNewRegistration: () => void;
   onSubStepChange: (subStep: SubStep) => void;
+  finishLabel?: string;
   details: PaymentDetails;
 }
 
@@ -90,6 +96,7 @@ const AtmosCardFlow: React.FC<AtmosCardFlowProps> = ({
   hasDiscount,
   onNewRegistration,
   onSubStepChange,
+  finishLabel,
   details,
 }) => {
   const { t } = useTranslation();
@@ -236,6 +243,7 @@ const AtmosCardFlow: React.FC<AtmosCardFlowProps> = ({
         paymentData={paymentData}
         onDownload={handleDownloadInfo}
         onNewRegistration={onNewRegistration}
+        finishLabel={finishLabel}
       />
     );
   }

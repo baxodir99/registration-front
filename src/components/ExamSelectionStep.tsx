@@ -351,7 +351,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
           )}
         </Box>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' }, gap: { xs: 1.25, sm: 1.5 } }}>
-          {examNames.map((item) => {
+          {[...examNames].sort((a, b) => a.id - b.id).map((item) => {
             const selected = item.id === Number(examName);
             return (
               <Button
@@ -446,6 +446,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
         selectedId={examDate ? Number(examDate) : undefined}
         ready={Boolean(exam && region)}
         loading={datesLoading}
+        failed={Boolean(error)}
         month={month}
         onMonthChange={setMonth}
         onSelect={(picked) => formik.setFieldValue('examDate', picked.id)}

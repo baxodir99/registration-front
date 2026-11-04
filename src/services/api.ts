@@ -20,38 +20,72 @@ import {
   ChargeCardResponse,
 } from '../types';
 
-// Create axios instance
+// Create axios instance. Refresh token httpOnly cookie da, shuning uchun withCredentials
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor
-api.interceptors.request.use(
-  (config) => {
-    // Request logging removed for production
-    return config;
-  },
-  (error) => {
-    // Only log errors in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('API Request Error:', error);
-    }
-    return Promise.reject(error);
-  }
-);
+// Access token faqat xotirada (localStorage ga yozilmaydi)
+let accessToken: string | null = null;
+let refreshing: Promise<boolean> | null = null;
+let onSessionExpired: (() => void) | null = null;
 
-// Response interceptor
+export const setAccessToken = (token: string | null) => {
+  accessToken = token;
+};
+
+export const setSessionExpiredHandler = (handler: () => void) => {
+  onSessionExpired = handler;
+};
+
+/** Bir vaqtda bitta so'rov: refresh token aylanadi, ikkinchi so'rov eskisi bilan 401 olardi */
+export const refreshSession = (): Promise<boolean> => {
+  if (!refreshing) {
+    refreshing = axios
+      .post<{ access: string }>(`${API_BASE_URL}/account/auth/refresh/`, null, { withCredentials: true })
+      .then((response) => {
+        accessToken = response.data.access;
+        return true;
+      })
+      .catch(() => {
+        accessToken = null;
+        return false;
+      })
+      .finally(() => {
+        refreshing = null;
+      });
+  }
+  return refreshing;
+};
+
+api.interceptors.request.use((config) => {
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
+  }
+  return config;
+});
+
 api.interceptors.response.use(
-  (response) => {
-    // Response logging removed for production
-    return response;
-  },
-  (error) => {
-    // Only log errors in development
+  (response) => response,
+  async (error) => {
+    const config = error.config;
+    const hadToken = Boolean(config?.headers?.Authorization);
+    if (error.response?.status === 401 && hadToken && !config.retried && !config.url?.includes('/account/auth/')) {
+      config.retried = true;
+      if (await refreshSession()) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
+        return api(config);
+      }
+      onSessionExpired?.();
+      // Sessiya tugagan: ochiq so'rovlar (ro'yxatlar) tokensiz ishlayveradi
+      delete config.headers.Authorization;
+      return api(config);
+    }
     if (process.env.NODE_ENV === 'development') {
       console.error('API Response Error:', error.response?.data || error.message);
     }

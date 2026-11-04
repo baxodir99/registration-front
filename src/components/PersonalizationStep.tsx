@@ -3,7 +3,9 @@ import { Box, Button, CircularProgress, InputAdornment, OutlinedInput, Typograph
 import { Check as CheckIcon, Person as PersonIcon, VerifiedUser as VerifiedIcon } from '@mui/icons-material';
 import { useFormik } from 'formik';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../context/AuthContext';
 import { apiService } from '../services/api';
+import { authApi } from '../services/auth';
 import {
   contactSchema,
   formatDate,
@@ -53,6 +55,24 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(initialData?.userProfile || null);
+  const { user, reload } = useAuth();
+  const linked = user?.profile || null;
+
+  // Kirgan va profili bor foydalanuvchi JSHSHIR/pasport kiritmaydi: backend profildan oladi
+  React.useEffect(() => {
+    if (!linked) return;
+    setUserProfile({
+      full_name: linked.full_name,
+      passport: linked.passport_masked,
+      pnfl_masked: linked.pnfl_masked,
+      photo: linked.photo || '',
+    } as UserProfile);
+    contact.setValues({
+      phone: contact.values.phone || user?.phone || '',
+      email: contact.values.email || user?.email || '',
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linked]);
 
   const formik = useFormik({
     initialValues: {
@@ -92,6 +112,10 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
       const response = await apiService.checkPersonalization(values);
       if (response.status === 1 || response.status === 2) {
         setUserProfile(response.data!);
+        // Kabinetga kirgan, lekin profili yo'q: tasdiqlangan profil akkauntga ulanadi
+        if (user && !user.has_profile) {
+          authApi.linkProfile(values.pnfl, values.passport).then(reload).catch(() => undefined);
+        }
       } else {
         setError(t('personalization.failed'));
         setUserProfile(null);
@@ -121,8 +145,8 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
   const handleNext = () => {
     if (userProfile) {
       onNext({
-        pnfl: formik.values.pnfl,
-        passport: formik.values.passport,
+        pnfl: linked ? undefined : formik.values.pnfl,
+        passport: linked ? undefined : formik.values.passport,
         userProfile,
         phone: contact.values.phone,
         email: contact.values.email,
@@ -132,7 +156,12 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
 
   const phoneDigits = contact.values.phone.replace(PHONE_PREFIX, '').replace(/\D/g, '');
   const identityInput = { ...(inputSx as object), '& input': { letterSpacing: '0.06em' } };
-  const profileRows = userProfile
+  const profileRows = linked
+    ? [
+        { label: t('confirmation.field_pnfl'), value: linked.pnfl_masked },
+        { label: t('user_info.passport_number'), value: linked.passport_masked },
+      ]
+    : userProfile
     ? [
         { label: t('user_info.birth_date'), value: formatDate(userProfile.birth_date) },
         { label: t('user_info.birth_place'), value: userProfile.birth_place },
@@ -149,9 +178,9 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
   return (
     <StepLayout aside={aside}>
       <SectionCard sx={{ gap: 2.5 }}>
-        <PageTitle title={t('personalization.title')} subtitle={t('personalization.subtitle')} />
+        <PageTitle title={t('personalization.title')} subtitle={linked ? t('personalization.linked_sub') : t('personalization.subtitle')} />
 
-        <Box
+        {!linked && <Box
           component="form"
           onSubmit={(e: React.FormEvent) => {
             e.preventDefault();
@@ -215,7 +244,7 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
           >
             {userProfile ? t('personalization.checked') : t('personalization.check')}
           </Button>
-        </Box>
+        </Box>}
 
         {error && <Notice kind="error">{error}</Notice>}
 
@@ -270,16 +299,20 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
                       <Box component="span" sx={{ fontSize: '15px', fontWeight: 500, overflowWrap: 'anywhere' }}>{row.value}</Box>
                     </Box>
                   ))}
-                  <Box sx={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: 0.25 }}>
-                    <Box component="span" sx={{ fontSize: '12px', color: modernColors.gray[700] }}>{t('user_info.doc_give_place')}</Box>
-                    <Box component="span" sx={{ fontSize: '15px', fontWeight: 500 }}>{userProfile.doc_give_place}</Box>
-                  </Box>
+                  {!linked && (
+                    <Box sx={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                      <Box component="span" sx={{ fontSize: '12px', color: modernColors.gray[700] }}>{t('user_info.doc_give_place')}</Box>
+                      <Box component="span" sx={{ fontSize: '15px', fontWeight: 500 }}>{userProfile.doc_give_place}</Box>
+                    </Box>
+                  )}
                 </Box>
               </Box>
             </Box>
-            <Typography sx={{ m: 0, fontSize: '13px', color: modernColors.gray[600] }}>
-              {t('personalization.wrong_data_hint')}
-            </Typography>
+            {!linked && (
+              <Typography sx={{ m: 0, fontSize: '13px', color: modernColors.gray[600] }}>
+                {t('personalization.wrong_data_hint')}
+              </Typography>
+            )}
           </>
         )}
       </SectionCard>
@@ -352,7 +385,7 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
 
       <NavRow>
         <SecondaryButton onClick={onPrevious} disabled={loading}>← {t('common.previous')}</SecondaryButton>
-        <PrimaryButton onClick={handleNext} disabled={loading || !userProfile || !contact.isValid}>
+        <PrimaryButton onClick={handleNext} disabled={loading || !userProfile || !contactSchema.isValidSync(contact.values)}>
           {t('common.continue')} →
         </PrimaryButton>
       </NavRow>

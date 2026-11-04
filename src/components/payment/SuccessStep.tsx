@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Button, Link, Typography } from '@mui/material';
 import { Check as CheckIcon, Download as DownloadIcon, InfoOutlined as InfoIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
+import { Link as RouterLink } from 'react-router-dom';
 import { SUPPORT_PHONE_TEL } from '../../constants';
 import { PaymentResponse } from '../../types';
 import { formatMoney } from '../../utils/price';
@@ -12,9 +13,10 @@ interface SuccessStepProps {
   paymentData: PaymentResponse;
   onDownload: () => void;
   onNewRegistration: () => void;
+  finishLabel?: string;
 }
 
-const SuccessStep: React.FC<SuccessStepProps> = ({ paymentData, onDownload, onNewRegistration }) => {
+const SuccessStep: React.FC<SuccessStepProps> = ({ paymentData, onDownload, onNewRegistration, finishLabel }) => {
   const { t } = useTranslation();
   const cardSx = {
     backgroundColor: modernColors.surface.primary,
@@ -65,11 +67,14 @@ const SuccessStep: React.FC<SuccessStepProps> = ({ paymentData, onDownload, onNe
         <span>
           {t('payment.card.success_note')}{' '}
           <Link href={`tel:${SUPPORT_PHONE_TEL}`} sx={{ fontWeight: 600 }}>(95) 515-68-68</Link>
+          <br />
+          {t('payment.cabinet_hint')}{' '}
+          <Link component={RouterLink} to="/kabinet" sx={{ fontWeight: 600 }}>{t('payment.cabinet_link')}</Link>
         </span>
       </Box>
 
       <SecondaryButton onClick={onNewRegistration} sx={{ alignSelf: 'center', minHeight: 48, fontSize: '15px' }}>
-        {t('payment.new_registration')}
+        {finishLabel || t('payment.new_registration')}
       </SecondaryButton>
     </Box>
   );

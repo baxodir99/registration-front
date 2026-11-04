@@ -79,6 +79,7 @@ export interface UserProfile {
   photo: string;
   full_name: string;
   passport: string;
+  pnfl_masked?: string;
   created_at: string;
   updated_at: string;
 }
@@ -90,7 +91,7 @@ export interface PersonalizationCheckForm {
 }
 
 export interface InvoiceRequestForm {
-  pnfl: string;
+  pnfl?: string; // kirgan foydalanuvchida backend profildan oladi
   examdate: number;
   phone: string;
   email: string;

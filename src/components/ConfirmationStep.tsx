@@ -72,7 +72,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
       setLoading(true);
       setError(null);
       const response = await apiService.createInvoice({
-        pnfl: formData.pnfl!,
+        pnfl: formData.pnfl,
         examdate: formData.examDate!,
         phone: formData.phone!,
         email: formData.email!,
@@ -145,7 +145,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
         {cardHeader(t('confirmation.personal_info'), FormStep.PERSONALIZATION)}
         <Box sx={threeColumns}>
           <InfoItem strong sx={{ gridColumn: '1 / -1' }} label={t('user_info.full_name')} value={profile?.full_name} />
-          <InfoItem label={t('confirmation.field_pnfl')} value={formData.pnfl} />
+          <InfoItem label={t('confirmation.field_pnfl')} value={formData.pnfl || profile?.pnfl_masked} />
           <InfoItem label={t('confirmation.field_passport')} value={profile?.passport} />
           <InfoItem label={t('user_info.birth_date')} value={profile ? formatDate(profile.birth_date) : undefined} />
           <InfoItem label={t('user_info.nationality')} value={profile?.nationality} />

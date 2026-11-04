@@ -1,8 +1,10 @@
 import React from 'react';
-import { Box, IconButton, Link, Tooltip, Typography } from '@mui/material';
-import { Phone as PhoneIcon, RestartAlt as RestartAltIcon } from '@mui/icons-material';
+import { Box, Button, IconButton, Link, Tooltip, Typography } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
+import { PersonOutline as PersonIcon, Phone as PhoneIcon, RestartAlt as RestartAltIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from '../LanguageSelector';
+import { useAuth } from '../../context/AuthContext';
 import { SUPPORT_PHONE_TEL } from '../../constants';
 import { modernColors } from '../../theme/modernTheme';
 import { FormStep } from '../../types';
@@ -14,6 +16,7 @@ interface AppHeaderProps {
 
 const AppHeader: React.FC<AppHeaderProps> = ({ currentStep, onOpenResetDialog }) => {
   const { t } = useTranslation();
+  const { user } = useAuth();
 
   return (
     <Box
@@ -74,13 +77,36 @@ const AppHeader: React.FC<AppHeaderProps> = ({ currentStep, onOpenResetDialog })
               <IconButton
                 onClick={onOpenResetDialog}
                 aria-label={t('header.reset_tooltip')}
-                sx={{ width: 44, height: 44, border: `1px solid ${modernColors.gray[200]}`, borderRadius: '10px' }}
+                sx={{ display: { xs: 'none', sm: 'inline-flex' }, width: 44, height: 44, border: `1px solid ${modernColors.gray[200]}`, borderRadius: '10px' }}
               >
                 <RestartAltIcon />
               </IconButton>
             </Tooltip>
           )}
           <LanguageSelector />
+          <Button
+            component={RouterLink}
+            to={user ? '/kabinet' : '/kirish'}
+            variant="contained"
+            disableElevation
+            aria-label={user ? t('cabinet.title') : t('auth.title')}
+            startIcon={<PersonIcon />}
+            sx={{
+              minHeight: 44,
+              py: 0,
+              px: { xs: 0, sm: 2 },
+              minWidth: { xs: 44, sm: 0 },
+              borderRadius: '10px',
+              fontSize: '14px',
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+              '& .MuiButton-startIcon': { m: { xs: 0, sm: '0 8px 0 -4px' } },
+            }}
+          >
+            <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+              {user ? user.profile?.first_name || t('cabinet.title') : t('auth.title')}
+            </Box>
+          </Button>
         </Box>
       </Box>
     </Box>

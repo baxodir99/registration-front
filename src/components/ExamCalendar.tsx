@@ -40,6 +40,7 @@ interface ExamCalendarProps {
   selectedId?: number;
   ready: boolean;
   loading: boolean;
+  failed: boolean;
   month: Dayjs;
   onMonthChange: (month: Dayjs) => void;
   onSelect: (examDate: ExamDate) => void;
@@ -50,6 +51,7 @@ const ExamCalendar: React.FC<ExamCalendarProps> = ({
   selectedId,
   ready,
   loading,
+  failed,
   month,
   onMonthChange,
   onSelect,
@@ -214,7 +216,7 @@ const ExamCalendar: React.FC<ExamCalendarProps> = ({
         </Box>
       </Box>
 
-      {ready && !loading && thisCount === 0 && nextCount > 0 && firstNext && (
+      {ready && !loading && !failed && thisCount === 0 && nextCount > 0 && firstNext && (
         <Notice
           kind="warning"
           action={
@@ -233,7 +235,7 @@ const ExamCalendar: React.FC<ExamCalendarProps> = ({
         </Notice>
       )}
 
-      {ready && !loading && openDates.length === 0 && <Notice>{key('no_dates_soon')}</Notice>}
+      {ready && !loading && !failed && openDates.length === 0 && <Notice>{key('no_dates_soon')}</Notice>}
       {!ready && <Notice>{key('choose_first')}</Notice>}
 
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 1.5, sm: 2 }, fontSize: { xs: '12px', sm: '13px' }, color: modernColors.gray[700] }}>

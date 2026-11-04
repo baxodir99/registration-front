@@ -66,11 +66,13 @@ const OtpInput: React.FC<OtpInputProps> = ({
 }) => {
   const refs = useRef<Array<HTMLInputElement | null>>([]);
 
+  // Xato koddan keyin maydonlar tozalanadi: kursor yana birinchi katakka qaytsin
+  const empty = value === '';
   useEffect(() => {
-    if (autoFocus) {
+    if (autoFocus && empty && !disabled) {
       refs.current[0]?.focus();
     }
-  }, [autoFocus]);
+  }, [autoFocus, empty, disabled]);
 
   const update = (next: string) => {
     const clean = next.replace(/\D/g, '').slice(0, length);

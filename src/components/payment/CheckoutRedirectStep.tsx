@@ -6,6 +6,7 @@ import {
   OpenInNew as OpenIcon,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
+import { Link as RouterLink } from 'react-router-dom';
 import { PaymentResponse } from '../../types';
 import { formatMoney } from '../../utils/price';
 import { modernColors, statusColors } from '../../theme/modernTheme';
@@ -17,6 +18,7 @@ interface CheckoutRedirectStepProps extends PaymentDetails {
   originalAmount?: number;
   hasDiscount: boolean;
   onNewRegistration: () => void;
+  finishLabel?: string;
 }
 
 const CheckoutRedirectStep: React.FC<CheckoutRedirectStepProps> = ({
@@ -24,6 +26,7 @@ const CheckoutRedirectStep: React.FC<CheckoutRedirectStepProps> = ({
   originalAmount,
   hasDiscount,
   onNewRegistration,
+  finishLabel,
   ...details
 }) => {
   const { t } = useTranslation();
@@ -74,7 +77,10 @@ const CheckoutRedirectStep: React.FC<CheckoutRedirectStepProps> = ({
             <Typography component="span" sx={{ fontSize: '14px', lineHeight: 1.5 }}>
               {t('payment.redirect.opened_note')}
             </Typography>
-            <Box>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.25 }}>
+              <Button component={RouterLink} to="/kabinet" variant="outlined" sx={{ minHeight: 48, py: 0, px: 2.25, borderRadius: '10px', backgroundColor: '#FFFFFF', fontSize: '15px', fontWeight: 600, color: modernColors.gray[900], borderColor: modernColors.gray[300] }}>
+                {t('payment.redirect.see_in_cabinet')}
+              </Button>
               <Button variant="outlined" onClick={openPaymentPage} sx={{ minHeight: 48, py: 0, px: 2.25, borderRadius: '10px', backgroundColor: '#FFFFFF', fontSize: '15px', fontWeight: 600 }}>
                 {t('payment.redirect.open_again')}
               </Button>
@@ -101,7 +107,7 @@ const CheckoutRedirectStep: React.FC<CheckoutRedirectStepProps> = ({
 
       <NavRow>
         <SecondaryButton onClick={onNewRegistration} sx={{ minHeight: 48, fontSize: '15px' }}>
-          {t('payment.new_registration')}
+          {finishLabel || t('payment.new_registration')}
         </SecondaryButton>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <SupportLine />
