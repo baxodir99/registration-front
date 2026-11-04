@@ -1,5 +1,6 @@
 // API Endpoints
-export const API_BASE_URL = "https://api.registration.ilmiymarkaz.uz";
+export const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL || "https://api.registration.ilmiymarkaz.uz";
 
 export const API_ENDPOINTS = {
   TYPES: "/main/types/",
@@ -29,7 +30,9 @@ export const VALIDATION = {
 // Session Storage Keys
 export const STORAGE_KEYS = {
   FORM_DATA: "exam_registration_form_data",
-  CURRENT_STEP: "exam_registration_current_step",
+  CURRENT_STEP: "exam_registration_step",
+  // 5 bosqichli eski versiya shu kalitga yozgan (qarang: storage.getCurrentStep)
+  LEGACY_CURRENT_STEP: "exam_registration_current_step",
   LANGUAGE: "exam_registration_language",
 } as const;
 
@@ -47,8 +50,6 @@ export const DEFAULT_LANGUAGE = "uz";
 export const FORM_STEPS = [
   "exam_selection",
   "personalization",
-  "user_info",
-  "registration_details",
   "confirmation",
   "payment",
 ] as const;

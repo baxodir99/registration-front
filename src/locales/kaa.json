@@ -79,6 +79,9 @@
     "doc_valid_period": "Amal qılıw muddeti"
   },
   "registration_details": {
+    "offer": "Ommaviy oferta",
+    "offer_download": "Júklep alıw",
+    "offer_missing": "Ommaviy oferta joq",
     "title": "Diziminen ótiw tafsilatlardı",
     "phone": "Telefon nómiri",
     "phone_placeholder": "+998901234567",

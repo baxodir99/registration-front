@@ -79,6 +79,9 @@
     "doc_valid_period": "Valid Period"
   },
   "registration_details": {
+    "offer": "Public offer",
+    "offer_download": "Download",
+    "offer_missing": "Public offer is not available",
     "title": "Registration Details",
     "phone": "Phone Number",
     "phone_placeholder": "+998901234567",

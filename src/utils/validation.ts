@@ -34,7 +34,7 @@ export const personalizationSchema = yup.object({
     .length(9, 'personalization.passport_invalid'),
 });
 
-export const registrationDetailsSchema = yup.object({
+export const contactSchema = yup.object({
   phone: yup
     .string()
     .required('common.required')
@@ -43,10 +43,6 @@ export const registrationDetailsSchema = yup.object({
     .string()
     .required('common.required')
     .email('registration_details.email_invalid'),
-  terms_accepted: yup
-    .boolean()
-    .required('common.required')
-    .oneOf([true], 'registration_details.terms_required'),
 });
 
 // Utility functions

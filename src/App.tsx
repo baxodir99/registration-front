@@ -7,7 +7,6 @@ import './utils/i18n';
 // Import components
 import ExamSelectionStep from './components/ExamSelectionStep';
 import PersonalizationStep from './components/PersonalizationStep';
-import RegistrationDetailsStep from './components/RegistrationDetailsStep';
 import ConfirmationStep from './components/ConfirmationStep';
 import PaymentStep from './components/PaymentStep';
 
@@ -65,17 +64,6 @@ function App() {
         return (
           <PersonalizationStep
             initialData={state.formData}
-            onNext={handlers.handleNext}
-            onPrevious={handlers.handlePrevious}
-            onDataChange={handlers.handleDataChange}
-          />
-        );
-
-      case FormStep.REGISTRATION_DETAILS:
-        return (
-          <RegistrationDetailsStep
-            initialData={state.formData}
-            examNames={state.examNames}
             onNext={handlers.handleNext}
             onPrevious={handlers.handlePrevious}
             onDataChange={handlers.handleDataChange}

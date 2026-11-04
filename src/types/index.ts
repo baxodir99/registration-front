@@ -43,8 +43,10 @@ export interface ExamDate {
   id: number;
   examname: number;
   exam: number;
-  region: number;
+  region: string[]; // backend viloyat nomlarini qaytaradi
   date: string;
+  regstration_open: string | null;
+  regstration_close: string | null;
   capacity: number;
   booked: number;
   availability_status: 'available' | 'half' | 'full';
@@ -167,9 +169,8 @@ export interface FormData {
 export enum FormStep {
   EXAM_SELECTION = 1,
   PERSONALIZATION = 2,
-  REGISTRATION_DETAILS = 3,
-  CONFIRMATION = 4,
-  PAYMENT = 5,
+  CONFIRMATION = 3,
+  PAYMENT = 4,
 }
 
 // Language Types

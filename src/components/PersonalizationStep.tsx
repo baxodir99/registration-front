@@ -4,14 +4,15 @@ import {
   Typography,
   Alert,
   CircularProgress,
+  TextField,
 } from '@mui/material';
 import { FilledTextField, FilledButton, OutlinedButton, SurfaceCard } from './MD3Components';
 import { LoadingButton } from '@mui/lab';
 import { useTranslation } from 'react-i18next';
 import { useFormik } from 'formik';
 import { apiService } from '../services/api';
-import { personalizationSchema } from '../utils/validation';
-import { formatPNFL, formatPassport, formatDate, formatDateRange } from '../utils/validation';
+import { contactSchema, personalizationSchema } from '../utils/validation';
+import { formatPNFL, formatPassport, formatPhone, formatDate, formatDateRange } from '../utils/validation';
 import { FormData, UserProfile } from '../types';
 import { modernBorderRadius } from '../theme/modernTheme';
 
@@ -47,15 +48,27 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
     },
   });
 
+  const contact = useFormik({
+    initialValues: {
+      phone: initialData?.phone || '',
+      email: initialData?.email || '',
+    },
+    validationSchema: contactSchema,
+    validateOnMount: true,
+    onSubmit: () => undefined,
+  });
+
   // Update parent data when form changes
   React.useEffect(() => {
     onDataChange({
       pnfl: formik.values.pnfl || undefined,
       passport: formik.values.passport || undefined,
       userProfile: userProfile || undefined,
+      phone: contact.values.phone || undefined,
+      email: contact.values.email || undefined,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formik.values, userProfile]);
+  }, [formik.values, contact.values, userProfile]);
 
   const checkPersonalization = async (values: { pnfl: string; passport: string }) => {
     try {
@@ -125,6 +138,8 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
         pnfl: formik.values.pnfl,
         passport: formik.values.passport,
         userProfile: userProfile,
+        phone: contact.values.phone,
+        email: contact.values.email,
       };
       onNext(formData);
     }
@@ -309,6 +324,36 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
         </SurfaceCard>
       )}
 
+      {/* Contact Details */}
+      {userProfile && (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3, md: 4 } }}>
+          <TextField
+            fullWidth
+            name="phone"
+            label={t('registration_details.phone')}
+            placeholder={t('registration_details.phone_placeholder')}
+            value={contact.values.phone}
+            onChange={(e) => contact.setFieldValue('phone', formatPhone(e.target.value || ''))}
+            onBlur={contact.handleBlur}
+            error={contact.touched.phone && Boolean(contact.errors.phone)}
+            helperText={contact.touched.phone && contact.errors.phone && t(contact.errors.phone)}
+            inputProps={{ inputMode: 'tel' }}
+          />
+          <TextField
+            fullWidth
+            name="email"
+            type="email"
+            label={t('registration_details.email')}
+            placeholder={t('registration_details.email_placeholder')}
+            value={contact.values.email}
+            onChange={contact.handleChange}
+            onBlur={contact.handleBlur}
+            error={contact.touched.email && Boolean(contact.errors.email)}
+            helperText={contact.touched.email && contact.errors.email && t(contact.errors.email)}
+          />
+        </Box>
+      )}
+
       {/* Navigation Buttons */}
       <Box sx={{
         display: 'flex',
@@ -331,7 +376,7 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
         {userProfile && (
           <FilledButton
             onClick={handleNext}
-            disabled={loading}
+            disabled={loading || !contact.isValid}
             sx={{
               width: { xs: '100%', sm: 'auto' },
               borderRadius: modernBorderRadius.xs,

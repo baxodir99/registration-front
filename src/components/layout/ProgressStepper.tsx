@@ -16,7 +16,6 @@ const ProgressStepper: React.FC<ProgressStepperProps> = ({ currentStep }) => {
     return [
       t('steps.exam_selection'),
       t('steps.personalization'),
-      t('steps.registration_details'),
       t('steps.confirmation'),
       t('steps.payment'),
     ];

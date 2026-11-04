@@ -49,7 +49,9 @@ export const useAppState = () => {
 
       if (Object.keys(savedFormData).length > 0) {
         setFormData(savedFormData);
-        setCurrentStep(savedStep);
+        // paymentData saqlanmaydi: to'lov bosqichi tasdiqlashdan qayta ochiladi
+        // (invoice-create shu odam va sanaga mavjud invoice ni qaytaradi)
+        setCurrentStep(savedStep === FormStep.PAYMENT ? FormStep.CONFIRMATION : savedStep);
       }
 
       // Load initial API data

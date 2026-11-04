@@ -79,6 +79,9 @@
     "doc_valid_period": "Amal qilish muddati"
   },
   "registration_details": {
+    "offer": "Ommaviy oferta",
+    "offer_download": "Yuklab olish",
+    "offer_missing": "Ommaviy oferta mavjud emas",
     "title": "Ro'yxatdan o'tish tafsilotlari",
     "phone": "Telefon raqami",
     "phone_placeholder": "+998901234567",

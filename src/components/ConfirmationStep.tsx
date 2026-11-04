@@ -4,7 +4,12 @@ import {
   Typography,
   Divider,
   Alert,
+  Checkbox,
   CircularProgress,
+  FormControlLabel,
+  IconButton,
+  Link,
+  Tooltip,
 } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { OutlinedButton } from './MD3Components';
@@ -13,6 +18,8 @@ import {
   School as SchoolIcon,
   ContactPhone as ContactPhoneIcon,
   Payment as PaymentIcon,
+  Download as DownloadIcon,
+  OpenInNew as OpenInNewIcon,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { FormData } from '../types';
@@ -45,6 +52,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [termsAccepted, setTermsAccepted] = useState(formData.terms_accepted || false);
 
   // Get display data
   const type = types.find(t => t.id === formData.type);
@@ -52,6 +60,13 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
   const examName = examNames.find(en => en.id === formData.examName);
   const exam = exams.find(e => e.id === formData.exam);
   const examDate = examDates.find(ed => ed.id === formData.examDate);
+  const offerLink = examName?.offer;
+
+  const handleOfferOpen = () => {
+    if (offerLink) {
+      window.open(offerLink, '_blank');
+    }
+  };
 
   // Get promocode from formData
   const promocodeData = formData.promocodeData;
@@ -87,7 +102,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
         phone: formData.phone!,
         email: formData.email!,
         region: formData.region!,
-        terms_accepted: formData.terms_accepted!,
+        terms_accepted: termsAccepted,
         promocode: formData.promocode || undefined,
       };
 
@@ -329,6 +344,58 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
             </Box>
           </Box>
         </SurfaceCard>
+
+        {/* Terms and Conditions */}
+        <FormControlLabel
+          control={
+            <Checkbox
+              name="terms_accepted"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              color="primary"
+            />
+          }
+          label={
+            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+              <Typography variant="body2">
+                {t('registration_details.terms')}{' '}
+              </Typography>
+              {offerLink ? (
+                <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
+                  <Link
+                    component="button"
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleOfferOpen();
+                    }}
+                    sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
+                  >
+                    {t('registration_details.offer')}
+                    <OpenInNewIcon sx={{ fontSize: 16 }} />
+                  </Link>
+                  <Tooltip title={t('registration_details.offer_download')}>
+                    <IconButton
+                      size="small"
+                      aria-label={t('registration_details.offer_download')}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleOfferOpen();
+                      }}
+                      sx={{ ml: 0.5 }}
+                    >
+                      <DownloadIcon sx={{ fontSize: 18 }} />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              ) : (
+                <Typography variant="body2" component="span" color="text.secondary">
+                  ({t('registration_details.offer_missing')})
+                </Typography>
+              )}
+            </Box>
+          }
+        />
       </Box>
 
       {/* Navigation Buttons */}
@@ -354,6 +421,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
           variant="contained"
           onClick={handleConfirm}
           loading={loading}
+          disabled={!termsAccepted}
           startIcon={<PaymentIcon />}
           loadingIndicator={
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

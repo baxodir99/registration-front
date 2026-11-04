@@ -47,7 +47,16 @@ export const storageService = {
   getCurrentStep: (): FormStep => {
     try {
       const step = sessionStorage.getItem(STORAGE_KEYS.CURRENT_STEP);
-      return step ? parseInt(step, 10) as FormStep : FormStep.EXAM_SELECTION;
+      if (step) {
+        return parseInt(step, 10) as FormStep;
+      }
+      // Eski 5 bosqichli sessiya: 3 -> 2, 4 -> 3, 5 -> 4
+      const legacy = parseInt(sessionStorage.getItem(STORAGE_KEYS.LEGACY_CURRENT_STEP) || '', 10);
+      sessionStorage.removeItem(STORAGE_KEYS.LEGACY_CURRENT_STEP);
+      if (legacy >= 3 && legacy <= 5) {
+        return (legacy - 1) as FormStep;
+      }
+      return legacy === 2 ? FormStep.PERSONALIZATION : FormStep.EXAM_SELECTION;
     } catch (error) {
       console.error('Error getting current step:', error);
       return FormStep.EXAM_SELECTION;

@@ -79,6 +79,9 @@
     "doc_valid_period": "Срок действия"
   },
   "registration_details": {
+    "offer": "Публичная оферта",
+    "offer_download": "Скачать",
+    "offer_missing": "Публичная оферта отсутствует",
     "title": "Детали регистрации",
     "phone": "Номер телефона",
     "phone_placeholder": "+998901234567",
