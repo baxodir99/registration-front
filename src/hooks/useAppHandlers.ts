@@ -11,8 +11,6 @@ interface UseAppHandlersProps {
   setFormData: (data: Partial<FormData>) => void;
   setPaymentData: (data: PaymentResponse | null) => void;
   setResetDialogOpen: (open: boolean) => void;
-  loadExams: (examNameId: number, typeId?: number) => Promise<any[]>;
-  loadExamDates: (examId: number, regionId: number) => Promise<any[]>;
 }
 
 export const useAppHandlers = ({
@@ -22,8 +20,6 @@ export const useAppHandlers = ({
   setFormData,
   setPaymentData,
   setResetDialogOpen,
-  loadExams,
-  loadExamDates,
 }: UseAppHandlersProps) => {
   const { t } = useTranslation();
   const handleNext = async (stepData: Partial<FormData> | { paymentData: PaymentResponse }) => {
@@ -35,19 +31,6 @@ export const useAppHandlers = ({
       // Regular form step
       const newFormData = { ...formData, ...stepData };
       setFormData(newFormData);
-
-      // Load additional data if needed
-      if (currentStep === FormStep.EXAM_SELECTION) {
-        if (stepData.examName && stepData.type) {
-          await loadExams(stepData.examName, stepData.type);
-        } else if (stepData.examName) {
-          await loadExams(stepData.examName);
-        }
-
-        if (stepData.exam && stepData.region) {
-          await loadExamDates(stepData.exam, stepData.region);
-        }
-      }
 
       setCurrentStep(currentStep + 1);
     }

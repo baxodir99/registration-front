@@ -40,6 +40,15 @@ const colors = {
   }
 };
 
+// Holat ranglari (REDESIGN.md). Rang yolg'iz belgi emas: yonida doim matn turadi
+export const statusColors = {
+  success: { bg: '#EAF6F0', border: '#A8D5C3', text: '#0E6B4C', dot: '#12805C' },
+  warning: { bg: '#FDF5E6', border: '#E7C98F', text: '#7A4F0D', dot: '#B7791F' },
+  error: { bg: '#FBEDED', border: '#E8BDBF', text: '#8C2A2E', dot: '#B4353A' },
+  info: { bg: '#EAF2FB', border: '#C5D9F0', text: '#1D3F66', dot: '#2C64A6' },
+  badge: '#D92D20',
+};
+
 // Modern Typography System
 const typography = {
   fontFamily: [

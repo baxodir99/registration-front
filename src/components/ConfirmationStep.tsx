@@ -1,43 +1,43 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Typography,
-  Divider,
-  Alert,
-  Checkbox,
-  CircularProgress,
-  FormControlLabel,
-  IconButton,
-  Link,
-  Tooltip,
-} from '@mui/material';
-import { LoadingButton } from '@mui/lab';
-import { OutlinedButton } from './MD3Components';
-import {
-  Person as PersonIcon,
-  School as SchoolIcon,
-  ContactPhone as ContactPhoneIcon,
-  Payment as PaymentIcon,
-  Download as DownloadIcon,
-  OpenInNew as OpenInNewIcon,
-} from '@mui/icons-material';
+import { Box, Button, Checkbox, IconButton, Typography } from '@mui/material';
+import { Download as DownloadIcon, Lock as LockIcon, OpenInNew as OpenIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
-import { FormData } from '../types';
 import { apiService } from '../services/api';
-import { SurfaceCard } from './MD3Components';
-import { modernBorderRadius } from '../theme/modernTheme';
 import { formatDate } from '../utils/validation';
+import { discountedAmount, formatMoney } from '../utils/price';
+import { modernColors, statusColors } from '../theme/modernTheme';
+import { Exam, ExamDate, ExamName, FormData, FormStep, Region, Type } from '../types';
+import {
+  AsideCard,
+  CardTitle,
+  Divider,
+  InfoItem,
+  NavRow,
+  Notice,
+  PageTitle,
+  PrimaryButton,
+  SecondaryButton,
+  SectionCard,
+  StepLayout,
+  SummaryRow,
+  TextLink,
+  TotalRow,
+} from './ui';
 
 interface ConfirmationStepProps {
   formData: FormData;
-  types: any[];
-  regions: any[];
-  examNames: any[];
-  exams: any[];
-  examDates: any[];
+  types: Type[];
+  regions: Region[];
+  examNames: ExamName[];
+  exams: Exam[];
+  examDates: ExamDate[];
   onNext: (data: { paymentData: any }) => void;
   onPrevious: () => void;
+  onEdit: (step: FormStep) => void;
 }
+
+const formatPhoneLabel = (phone?: string) =>
+  (phone || '').replace(/^\+998(\d{2})(\d{3})(\d{2})(\d{2})$/, '+998 $1 $2 $3 $4');
 
 const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
   formData,
@@ -48,55 +48,30 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
   examDates,
   onNext,
   onPrevious,
+  onEdit,
 }) => {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(formData.terms_accepted || false);
 
-  // Get display data
-  const type = types.find(t => t.id === formData.type);
-  const region = regions.find(r => r.id === formData.region);
-  const examName = examNames.find(en => en.id === formData.examName);
-  const exam = exams.find(e => e.id === formData.exam);
-  const examDate = examDates.find(ed => ed.id === formData.examDate);
+  const region = regions.find((r) => r.id === formData.region);
+  const examName = examNames.find((en) => en.id === formData.examName);
+  const exam = exams.find((e) => e.id === formData.exam);
+  const type = types.find((item) => item.id === exam?.type);
+  const examDate = examDates.find((ed) => ed.id === formData.examDate);
+  const profile = formData.userProfile;
   const offerLink = examName?.offer;
 
-  const handleOfferOpen = () => {
-    if (offerLink) {
-      window.open(offerLink, '_blank');
-    }
-  };
-
-  // Get promocode from formData
-  const promocodeData = formData.promocodeData;
-  const originalAmount = exam ? parseFloat(exam.amount) : 0;
-
-  // Calculate price with promocode
-  const calculateDiscountedPrice = () => {
-    if (!promocodeData || !promocodeData.is_active) {
-      return originalAmount;
-    }
-
-    if (promocodeData.discount_type === 'percent') {
-      const discount = (promocodeData.discount_value / 100) * originalAmount;
-      return Math.max(0, originalAmount - discount);
-    } else if (promocodeData.discount_type === 'amount') {
-      return Math.max(0, originalAmount - promocodeData.discount_value);
-    }
-
-    return originalAmount;
-  };
-
-  const finalAmount = calculateDiscountedPrice();
-  const discountAmount = originalAmount - finalAmount;
+  const original = exam ? parseFloat(exam.amount) : 0;
+  const final = discountedAmount(original, formData.promocodeData);
+  const currency = t('payment.currency');
 
   const handleConfirm = async () => {
     try {
       setLoading(true);
       setError(null);
-
-      const invoiceData = {
+      const response = await apiService.createInvoice({
         pnfl: formData.pnfl!,
         examdate: formData.examDate!,
         phone: formData.phone!,
@@ -104,340 +79,188 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
         region: formData.region!,
         terms_accepted: termsAccepted,
         promocode: formData.promocode || undefined,
-      };
-
-      const response = await apiService.createInvoice(invoiceData);
-
+      });
       if (response.status === 1) {
         onNext({ paymentData: response.data });
       } else {
         setError(response.message || t('messages.registration_failed'));
       }
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      
-      if (error.response?.data?.message) {
-        setError(error.response.data.message);
-      } else {
-        setError(t('messages.registration_failed'));
-      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || t('messages.registration_failed'));
     } finally {
       setLoading(false);
     }
   };
 
+  const cardHeader = (title: string, step: FormStep) => (
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+      <CardTitle size={18}>{title}</CardTitle>
+      <TextLink onClick={() => onEdit(step)}>{t('confirmation.edit')}</TextLink>
+    </Box>
+  );
+  const threeColumns = { display: 'grid', gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', md: 'repeat(3, minmax(0, 1fr))' }, gap: 2 };
+  const cardSx = { px: { xs: 2, sm: 3.5 }, py: { xs: 2, sm: 3 }, gap: 2 };
+
+  const aside = (
+    <AsideCard>
+      <CardTitle size={18}>{t('confirmation.payment_amount')}</CardTitle>
+      {final < original && (
+        <>
+          <SummaryRow
+            label={t('confirmation.original_amount')}
+            value={<Box component="span" sx={{ color: modernColors.gray[600], textDecoration: 'line-through' }}>{formatMoney(original)} {currency}</Box>}
+          />
+          <SummaryRow
+            label={<>{t('confirmation.discount_promo')} <Box component="strong" sx={{ color: modernColors.gray[900] }}>{formData.promocode}</Box></>}
+            value={<Box component="span" sx={{ color: statusColors.success.text, fontWeight: 600 }}>−{formatMoney(original - final)} {currency}</Box>}
+          />
+          <Divider />
+        </>
+      )}
+      <TotalRow label={t('confirmation.final_amount')} value={`${formatMoney(final)} ${currency}`} />
+      <Typography sx={{ m: 0, fontSize: '13px', lineHeight: 1.5, color: modernColors.gray[500] }}>
+        {t('confirmation.promo_hint')}
+      </Typography>
+    </AsideCard>
+  );
 
   return (
-    <Box>
-      <Typography variant="h2" gutterBottom sx={{
-        fontSize: { xs: '20px', sm: '24px', md: '28px' },
-        fontWeight: 600,
-        mb: { xs: 2, sm: 3, md: 4 },
-        color: 'text.primary'
-      }}>
-        {t('confirmation.title')}
-      </Typography>
+    <StepLayout aside={aside} gap={2}>
+      <PageTitle size={28} title={t('confirmation.title')} subtitle={t('confirmation.subtitle')} />
 
-      {error && (
-        <Alert severity="error" sx={{ mb: { xs: 2, sm: 3, md: 4 }, borderRadius: modernBorderRadius.xs }}>
-          {error}
-        </Alert>
-      )}
+      {error && <Notice kind="error">{error}</Notice>}
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3, md: 4 } }}>
-        {/* Exam Information */}
-        <SurfaceCard surfaceVariant="elevated" sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, sm: 3, md: 4 } }}>
-            <SchoolIcon color="primary" sx={{ mr: 1, fontSize: { xs: 20, sm: 24 } }} />
-            <Typography variant="h4" sx={{
-              fontSize: { xs: '16px', sm: '17px', md: '18px' },
-              fontWeight: 600
-            }}>
-              {t('confirmation.exam_info')}
-            </Typography>
-          </Box>
-          <Divider sx={{ mb: { xs: 2, sm: 3, md: 4 } }} />
+      <SectionCard sx={cardSx}>
+        {cardHeader(t('confirmation.exam_info'), FormStep.EXAM_SELECTION)}
+        <Box sx={threeColumns}>
+          <InfoItem strong label={t('confirmation.field_name')} value={examName?.name} />
+          <InfoItem label={t('confirmation.field_direction')} value={exam?.name} />
+          {type && <InfoItem label={t('confirmation.field_type')} value={type.name} />}
+          <InfoItem label={t('confirmation.field_region')} value={region?.name} />
+          <InfoItem label={t('confirmation.field_date')} value={examDate ? formatDate(examDate.date) : undefined} />
+        </Box>
+      </SectionCard>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3, md: 4 } }}>
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                {t('exam_selection.exam_name')}
-              </Typography>
-              <Typography variant="body1">
-                {examName?.name}
-              </Typography>
+      <SectionCard sx={cardSx}>
+        {cardHeader(t('confirmation.personal_info'), FormStep.PERSONALIZATION)}
+        <Box sx={threeColumns}>
+          <InfoItem strong sx={{ gridColumn: '1 / -1' }} label={t('user_info.full_name')} value={profile?.full_name} />
+          <InfoItem label={t('confirmation.field_pnfl')} value={formData.pnfl} />
+          <InfoItem label={t('confirmation.field_passport')} value={profile?.passport} />
+          <InfoItem label={t('user_info.birth_date')} value={profile ? formatDate(profile.birth_date) : undefined} />
+          <InfoItem label={t('user_info.nationality')} value={profile?.nationality} />
+        </Box>
+      </SectionCard>
+
+      <SectionCard sx={cardSx}>
+        {cardHeader(t('confirmation.contact_info'), FormStep.PERSONALIZATION)}
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' }, gap: 2 }}>
+          <InfoItem label={t('confirmation.field_phone')} value={formatPhoneLabel(formData.phone)} />
+          <InfoItem label={t('confirmation.field_email')} value={formData.email} />
+        </Box>
+      </SectionCard>
+
+      <SectionCard sx={{ ...cardSx, gap: 1.75 }}>
+        <CardTitle size={18}>{t('registration_details.offer')}</CardTitle>
+        {offerLink ? (
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: 1.75,
+              p: '14px 16px',
+              borderRadius: '12px',
+              border: `1px solid ${modernColors.gray[200]}`,
+              backgroundColor: '#F8FAF9',
+            }}
+          >
+            <Box
+              sx={{
+                width: 40,
+                height: 48,
+                borderRadius: '6px',
+                backgroundColor: '#FFFFFF',
+                border: `1px solid ${modernColors.gray[200]}`,
+                color: statusColors.error.dot,
+                fontSize: '11px',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              PDF
             </Box>
-
-            {type && (
-              <Box>
-                <Typography variant="body2" color="text.secondary">
-                  {t('exam_selection.type')}
-                </Typography>
-                <Typography variant="body1">
-                  {type.name}
-                </Typography>
+            <Box sx={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+              <Box component="span" sx={{ fontSize: '15px', fontWeight: 600 }}>
+                {t('confirmation.offer_name', { name: examName?.name })}
               </Box>
-            )}
-
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                {t('exam_selection.region')}
-              </Typography>
-              <Typography variant="body1">
-                {region?.name}
-              </Typography>
+              <Box component="span" sx={{ fontSize: '13px', color: modernColors.gray[600] }}>
+                {t('confirmation.offer_sub')}
+              </Box>
             </Box>
-
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                {t('exam_selection.exam')}
-              </Typography>
-              <Typography variant="body1">
-                {exam?.name}
-              </Typography>
-            </Box>
-
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                {t('exam_selection.exam_date')}
-              </Typography>
-              <Typography variant="body1">
-                {examDate && formatDate(examDate.date)}
-              </Typography>
-            </Box>
-
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                {t('confirmation.payment_amount')}
-              </Typography>
-              {promocodeData && discountAmount > 0 ? (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 1 }}>
-                  <Typography variant="body1" sx={{
-                    textDecoration: 'line-through',
-                    color: 'text.secondary',
-                    fontSize: '16px'
-                  }}>
-                    {originalAmount.toLocaleString()} {t('payment.currency')}
-                  </Typography>
-                  <Typography variant="h6" sx={{
-                    color: 'success.main',
-                    fontWeight: 700,
-                    fontSize: '20px'
-                  }}>
-                    {finalAmount.toLocaleString()} {t('payment.currency')}
-                  </Typography>
-                </Box>
-              ) : (
-                <Typography variant="h6" sx={{
-                  mt: 1,
-                  fontWeight: 600,
-                  fontSize: '18px'
-                }}>
-                  {originalAmount.toLocaleString()} {t('payment.currency')}
-                </Typography>
-              )}
-            </Box>
+            <Button
+              variant="outlined"
+              href={offerLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              startIcon={<OpenIcon />}
+              sx={{ minHeight: 44, py: 0, px: 1.75, borderRadius: '10px', fontWeight: 600, color: modernColors.gray[900], borderColor: modernColors.gray[300] }}
+            >
+              {t('confirmation.offer_open')}
+            </Button>
+            <IconButton
+              href={offerLink}
+              download
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={t('registration_details.offer_download')}
+              sx={{ width: 44, height: 44, borderRadius: '10px', border: `1px solid ${modernColors.gray[300]}`, color: modernColors.gray[900] }}
+            >
+              <DownloadIcon fontSize="small" />
+            </IconButton>
           </Box>
-        </SurfaceCard>
-
-        {/* Personal Information */}
-        <SurfaceCard surfaceVariant="elevated" sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, sm: 3, md: 4 } }}>
-            <PersonIcon color="primary" sx={{ mr: 1, fontSize: { xs: 20, sm: 24 } }} />
-            <Typography variant="h6" sx={{
-              fontSize: { xs: '16px', sm: '17px', md: '18px' },
-              fontWeight: 600
-            }}>
-              {t('confirmation.personal_info')}
-            </Typography>
-          </Box>
-          <Divider sx={{ mb: { xs: 2, sm: 2 } }} />
-
-          <Box sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-            gap: { xs: 2, sm: 2.5, md: 3 },
-            rowGap: { xs: 2, sm: 3, md: 4 }
-          }}>
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                {t('user_info.full_name')}
-              </Typography>
-              <Typography variant="body1">
-                {formData.userProfile?.full_name}
-              </Typography>
-            </Box>
-
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                {t('personalization.pnfl')}
-              </Typography>
-              <Typography variant="body1">
-                {formData.pnfl}
-              </Typography>
-            </Box>
-
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                {t('user_info.passport_number')}
-              </Typography>
-              <Typography variant="body1">
-                {formData.userProfile?.passport}
-              </Typography>
-            </Box>
-
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                {t('user_info.birth_date')}
-              </Typography>
-              <Typography variant="body1">
-                {formData.userProfile && formatDate(formData.userProfile.birth_date)}
-              </Typography>
-            </Box>
-
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                {t('user_info.nationality')}
-              </Typography>
-              <Typography variant="body1">
-                {formData.userProfile?.nationality}
-              </Typography>
-            </Box>
-          </Box>
-        </SurfaceCard>
-
-        {/* Contact Information */}
-        <SurfaceCard surfaceVariant="elevated" sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: { xs: 2, sm: 3, md: 4 } }}>
-            <ContactPhoneIcon color="primary" sx={{ mr: 1, fontSize: { xs: 20, sm: 24 } }} />
-            <Typography variant="h6" sx={{
-              fontSize: { xs: '16px', sm: '17px', md: '18px' },
-              fontWeight: 600
-            }}>
-              {t('confirmation.contact_info')}
-            </Typography>
-          </Box>
-          <Divider sx={{ mb: { xs: 2, sm: 2 } }} />
-
-          <Box sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-            gap: { xs: 2, sm: 2.5, md: 3 },
-            rowGap: { xs: 2, sm: 3, md: 4 }
-          }}>
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                {t('registration_details.phone')}
-              </Typography>
-              <Typography variant="body1">
-                {formData.phone}
-              </Typography>
-            </Box>
-
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                {t('registration_details.email')}
-              </Typography>
-              <Typography variant="body1">
-                {formData.email}
-              </Typography>
-            </Box>
-          </Box>
-        </SurfaceCard>
-
-        {/* Terms and Conditions */}
-        <FormControlLabel
-          control={
-            <Checkbox
-              name="terms_accepted"
-              checked={termsAccepted}
-              onChange={(e) => setTermsAccepted(e.target.checked)}
-              color="primary"
-            />
-          }
-          label={
-            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-              <Typography variant="body2">
-                {t('registration_details.terms')}{' '}
-              </Typography>
-              {offerLink ? (
-                <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
-                  <Link
-                    component="button"
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleOfferOpen();
-                    }}
-                    sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
-                  >
-                    {t('registration_details.offer')}
-                    <OpenInNewIcon sx={{ fontSize: 16 }} />
-                  </Link>
-                  <Tooltip title={t('registration_details.offer_download')}>
-                    <IconButton
-                      size="small"
-                      aria-label={t('registration_details.offer_download')}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleOfferOpen();
-                      }}
-                      sx={{ ml: 0.5 }}
-                    >
-                      <DownloadIcon sx={{ fontSize: 18 }} />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              ) : (
-                <Typography variant="body2" component="span" color="text.secondary">
-                  ({t('registration_details.offer_missing')})
-                </Typography>
-              )}
-            </Box>
-          }
-        />
-      </Box>
-
-      {/* Navigation Buttons */}
-      <Box sx={{
-        display: 'flex',
-        flexDirection: { xs: 'column', sm: 'row' },
-        justifyContent: 'space-between',
-        mt: { xs: 4, sm: 6, md: 8 },
-        gap: { xs: 2, sm: 3, md: 4 }
-      }}>
-        <OutlinedButton
-          onClick={onPrevious}
-          disabled={loading}
+        ) : (
+          <Notice>{t('registration_details.offer_missing')}</Notice>
+        )}
+        <Box
+          component="label"
           sx={{
-            width: { xs: '100%', sm: 'auto' },
-            borderRadius: modernBorderRadius.xs,
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 1.5,
+            p: '14px 16px',
+            borderRadius: '12px',
+            border: termsAccepted ? `2px solid ${modernColors.primary[600]}` : `1px solid ${modernColors.gray[300]}`,
+            backgroundColor: termsAccepted ? modernColors.primary[50] : '#FFFFFF',
+            fontSize: '15px',
+            lineHeight: 1.45,
+            cursor: 'pointer',
           }}
         >
-          {t('common.previous')}
-        </OutlinedButton>
+          <Checkbox
+            name="terms_accepted"
+            checked={termsAccepted}
+            onChange={(e) => setTermsAccepted(e.target.checked)}
+            sx={{ p: 0 }}
+          />
+          <span>{t('confirmation.terms')}</span>
+        </Box>
+        {!termsAccepted && (
+          <Typography component="span" sx={{ fontSize: '13px', color: modernColors.gray[500] }}>
+            {t('confirmation.terms_hint')}
+          </Typography>
+        )}
+      </SectionCard>
 
-        <LoadingButton
-          variant="contained"
-          onClick={handleConfirm}
-          loading={loading}
-          disabled={!termsAccepted}
-          startIcon={<PaymentIcon />}
-          loadingIndicator={
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <CircularProgress size={20} />
-              <span>{t('common.loading')}</span>
-            </Box>
-          }
-          sx={{
-            borderRadius: modernBorderRadius.xs,
-            width: { xs: '100%', sm: 'auto' },
-          }}
-        >
+      <NavRow>
+        <SecondaryButton onClick={onPrevious} disabled={loading}>← {t('common.previous')}</SecondaryButton>
+        <PrimaryButton onClick={handleConfirm} loading={loading} disabled={!termsAccepted} startIcon={loading ? undefined : <LockIcon />}>
           {t('confirmation.confirm_registration')}
-        </LoadingButton>
-      </Box>
-    </Box>
+        </PrimaryButton>
+      </NavRow>
+    </StepLayout>
   );
 };
 

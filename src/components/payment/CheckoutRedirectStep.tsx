@@ -1,20 +1,18 @@
-import React from 'react';
-import { Box, Typography } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Button, Typography } from '@mui/material';
 import {
-  CheckCircle as CheckCircleIcon,
-  Download as DownloadIcon,
-  InfoOutlined as InfoIcon,
-  Launch as LaunchIcon,
-  Payment as PaymentIcon,
+  Check as CheckIcon,
+  CheckCircleOutline as OpenedIcon,
+  OpenInNew as OpenIcon,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
-
 import { PaymentResponse } from '../../types';
-import { FilledButton, OutlinedButton } from '../MD3Components';
-import { modernColors, modernBorderRadius } from '../../theme/modernTheme';
-import InvoiceSummary from './InvoiceSummary';
+import { formatMoney } from '../../utils/price';
+import { modernColors, statusColors } from '../../theme/modernTheme';
+import { CardTitle, NavRow, Notice, PrimaryButton, SecondaryButton, SectionCard, StepLayout, SupportLine } from '../ui';
+import InvoiceSummary, { PaymentDetails } from './InvoiceSummary';
 
-interface CheckoutRedirectStepProps {
+interface CheckoutRedirectStepProps extends PaymentDetails {
   paymentData: PaymentResponse;
   originalAmount?: number;
   hasDiscount: boolean;
@@ -26,195 +24,90 @@ const CheckoutRedirectStep: React.FC<CheckoutRedirectStepProps> = ({
   originalAmount,
   hasDiscount,
   onNewRegistration,
+  ...details
 }) => {
   const { t } = useTranslation();
+  const [opened, setOpened] = useState(false);
 
   const openPaymentPage = () => {
     if (!paymentData.pay_url) return;
     window.open(paymentData.pay_url, '_blank', 'noopener,noreferrer');
+    setOpened(true);
   };
 
-  const handleDownloadInfo = () => {
-    if (!paymentData.info_doc) return;
-    const link = document.createElement('a');
-    link.href = paymentData.info_doc;
-    link.download = `imtihon_malumoti_${paymentData.invoice}.pdf`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  const afterSteps = [t('payment.redirect.after_1'), t('payment.redirect.after_2'), t('payment.redirect.after_3')];
 
   return (
-    <Box sx={{ maxWidth: 640, mx: 'auto' }}>
-      <Box sx={{ textAlign: 'center', mb: 4 }}>
-        <Box
-          sx={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 80,
-            height: 80,
-            borderRadius: '50%',
-            backgroundColor: '#DCFCE7',
-            color: '#15803D',
-            mb: 2.5,
-            animation: 'redirectPop 0.5s ease-out',
-            '@keyframes redirectPop': {
-              '0%': { transform: 'scale(0.6)', opacity: 0 },
-              '100%': { transform: 'scale(1)', opacity: 1 },
-            },
-          }}
-        >
-          <CheckCircleIcon sx={{ fontSize: 48 }} />
+    <StepLayout
+      aside={<InvoiceSummary paymentData={paymentData} originalAmount={originalAmount} hasDiscount={hasDiscount} {...details} />}
+    >
+      <SectionCard sx={{ p: { xs: 2, sm: 4 }, gap: 2.75 }}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2.25, alignItems: 'flex-start' }}>
+          <Box sx={{ width: 56, height: 56, flex: '0 0 56px', borderRadius: '28px', backgroundColor: statusColors.success.bg, color: statusColors.success.dot, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <CheckIcon sx={{ fontSize: 30 }} />
+          </Box>
+          <Box sx={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+            <Typography component="h1" sx={{ m: 0, fontSize: { xs: '22px', sm: '26px' }, fontWeight: 700 }}>
+              {t('payment.redirect.title')}
+            </Typography>
+            <Typography sx={{ m: 0, fontSize: '15px', lineHeight: 1.55, color: modernColors.gray[700] }}>
+              {t('payment.redirect.lead_before')} <strong>{t('payment.redirect.lead_strong')}</strong> {t('payment.redirect.lead_after')}
+            </Typography>
+          </Box>
         </Box>
-        <Typography
-          variant="h2"
-          sx={{
-            fontSize: { xs: 22, sm: 28 },
-            fontWeight: 700,
-            color: modernColors.gray[900],
-            mb: 1,
-          }}
-        >
-          {t('payment.redirect.title')}
-        </Typography>
-        <Typography
-          sx={{
-            fontSize: 15,
-            color: modernColors.gray[600],
-            maxWidth: 440,
-            mx: 'auto',
-          }}
-        >
-          {t('payment.redirect.subtitle')}
-        </Typography>
-      </Box>
 
-      <Box sx={{ mb: 3 }}>
-        <InvoiceSummary
-          paymentData={paymentData}
-          originalAmount={originalAmount}
-          hasDiscount={hasDiscount}
-        />
-      </Box>
-
-      <Box
-        sx={{
-          mb: 3,
-          p: 2.5,
-          borderRadius: modernBorderRadius.xs,
-          borderLeft: `4px solid ${modernColors.primary[500]}`,
-          backgroundColor: modernColors.primary[50],
-        }}
-      >
-        <Typography
-          sx={{
-            fontSize: 14,
-            color: modernColors.gray[700],
-            lineHeight: 1.7,
-          }}
-        >
-          {t('payment.redirect.instructions')}
-        </Typography>
-      </Box>
-
-      <FilledButton
-        onClick={openPaymentPage}
-        fullWidth
-        startIcon={<PaymentIcon />}
-        endIcon={<LaunchIcon />}
-        sx={{ mb: 2, fontWeight: 600 }}
-      >
-        {t('payment.redirect.cta')}
-      </FilledButton>
-
-      <Typography
-        sx={{
-          fontSize: 12,
-          color: modernColors.gray[500],
-          textAlign: 'center',
-          mb: 4,
-        }}
-      >
-        {t('payment.redirect.opened_hint')}
-      </Typography>
-
-      {paymentData.info_doc && (
-        <Box
-          sx={{
-            mb: 3,
-            p: 2.5,
-            borderRadius: modernBorderRadius.xs,
-            border: `1px dashed ${modernColors.primary[300]}`,
-            backgroundColor: modernColors.primary[50],
-            display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
-            gap: 2,
-            alignItems: { xs: 'stretch', sm: 'center' },
-            justifyContent: 'space-between',
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-            <InfoIcon sx={{ color: modernColors.primary[700], mt: 0.25 }} />
+        {!opened ? (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <PrimaryButton tall fullWidth onClick={openPaymentPage} endIcon={<OpenIcon />} sx={{ minHeight: 58 }}>
+              {t('payment.redirect.pay_amount', { amount: formatMoney(paymentData.amount), currency: t('payment.currency') })}
+            </PrimaryButton>
+            <Typography sx={{ m: 0, fontSize: '13px', textAlign: 'center', color: modernColors.gray[500] }}>
+              {t('payment.redirect.secure_hint')}
+            </Typography>
+          </Box>
+        ) : (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75, p: 2.25, borderRadius: '14px', backgroundColor: statusColors.info.bg, border: `1px solid ${statusColors.info.border}`, color: statusColors.info.text }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, fontSize: '15px', fontWeight: 600 }}>
+              <OpenedIcon sx={{ fontSize: 20 }} />
+              {t('payment.redirect.opened_title')}
+            </Box>
+            <Typography component="span" sx={{ fontSize: '14px', lineHeight: 1.5 }}>
+              {t('payment.redirect.opened_note')}
+            </Typography>
             <Box>
-              <Typography
-                sx={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: modernColors.gray[900],
-                  mb: 0.5,
-                }}
-              >
-                {t('payment.exam_info_title')}
-              </Typography>
-              <Typography sx={{ fontSize: 13, color: modernColors.gray[600] }}>
-                {t('payment.exam_info_description')}
-              </Typography>
+              <Button variant="outlined" onClick={openPaymentPage} sx={{ minHeight: 48, py: 0, px: 2.25, borderRadius: '10px', backgroundColor: '#FFFFFF', fontSize: '15px', fontWeight: 600 }}>
+                {t('payment.redirect.open_again')}
+              </Button>
             </Box>
           </Box>
-          <OutlinedButton
-            onClick={handleDownloadInfo}
-            startIcon={<DownloadIcon />}
-            sx={{ flexShrink: 0 }}
-          >
-            {t('payment.download_exam_info')}
-          </OutlinedButton>
+        )}
+
+        <Notice>{t('payment.redirect.opened_hint')}</Notice>
+      </SectionCard>
+
+      <SectionCard sx={{ px: { xs: 2, sm: 3.5 }, py: { xs: 2, sm: 3 }, gap: 1.75 }}>
+        <CardTitle size={18}>{t('payment.redirect.after_title')}</CardTitle>
+        <Box component="ol" sx={{ m: 0, p: 0, listStyle: 'none', display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, minmax(0, 1fr))' }, gap: 2 }}>
+          {afterSteps.map((text, index) => (
+            <Box component="li" key={index} sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Box component="span" sx={{ width: 32, height: 32, borderRadius: '16px', backgroundColor: modernColors.primary[50], color: modernColors.primary[600], fontSize: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {index + 1}
+              </Box>
+              <Box component="span" sx={{ fontSize: '14px', lineHeight: 1.5 }}>{text}</Box>
+            </Box>
+          ))}
         </Box>
-      )}
+      </SectionCard>
 
-      <Box
-        sx={{
-          mb: 4,
-          p: 2,
-          borderRadius: modernBorderRadius.xs,
-          backgroundColor: modernColors.surface.secondary,
-          display: 'flex',
-          gap: 1.5,
-          alignItems: 'flex-start',
-        }}
-      >
-        <InfoIcon sx={{ fontSize: 20, color: modernColors.gray[500], mt: 0.25 }} />
-        <Typography
-          sx={{
-            fontSize: 13,
-            color: modernColors.gray[600],
-            lineHeight: 1.7,
-          }}
-        >
-          {t('payment.redirect.after_payment_note')}
-        </Typography>
-      </Box>
-
-      <Box sx={{ textAlign: 'center' }}>
-        <OutlinedButton
-          onClick={onNewRegistration}
-          sx={{ px: 5, width: { xs: '100%', sm: 'auto' } }}
-        >
+      <NavRow>
+        <SecondaryButton onClick={onNewRegistration} sx={{ minHeight: 48, fontSize: '15px' }}>
           {t('payment.new_registration')}
-        </OutlinedButton>
-      </Box>
-    </Box>
+        </SecondaryButton>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <SupportLine />
+        </Box>
+      </NavRow>
+    </StepLayout>
   );
 };
 

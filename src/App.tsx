@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, CssBaseline, ThemeProvider, LinearProgress, Typography } from '@mui/material';
+import { Box, CssBaseline, ThemeProvider, LinearProgress, Typography, useMediaQuery } from '@mui/material';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useTranslation } from 'react-i18next';
@@ -12,7 +12,7 @@ import ConfirmationStep from './components/ConfirmationStep';
 import PaymentStep from './components/PaymentStep';
 
 // Import layout components
-import { AppHeader, MainLayout, ProgressStepper, StepContent } from './components/layout';
+import { AppHeader, MainLayout, ProgressStepper } from './components/layout';
 import SelectionPanel from './components/layout/SelectionPanel';
 import ResetDialog from './components/dialogs/ResetDialog';
 
@@ -25,76 +25,91 @@ import { modernColors, modernTheme } from './theme/modernTheme';
 
 // Import types
 import { FormStep } from './types';
+import { SubStep } from './components/payment/SubStepper';
+import { formatDate } from './utils/validation';
 
 function App() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isMobile = useMediaQuery('(max-width:600px)');
+  const [paymentSubStep, setPaymentSubStep] = React.useState<SubStep>('card');
 
   // State management
   const state = useAppState();
-  const { loadExams, loadExamDates } = state;
-  const { examName, exam, region } = state.formData;
+  const { loadExams, loadExamDates, currentStep, formData } = state;
+  const { examName, exam, region } = formData;
+  const firstStep = currentStep === FormStep.EXAM_SELECTION;
 
-  // O'ng panel va tasdiqlash uchun: tanlov o'zgarsa (yoki sessiya tiklansa) ro'yxatlar yangilanadi
+  // 1-bosqich ro'yxatlarni o'zi yuklaydi; keyingi bosqichlar uchun (sessiya tiklanganda ham) shu yerda
   React.useEffect(() => {
-    if (examName) {
+    if (!firstStep && examName) {
       loadExams(examName);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [examName]);
+  }, [firstStep, examName]);
 
   React.useEffect(() => {
-    if (exam && region) {
+    if (!firstStep && exam && region) {
       loadExamDates(exam, region);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exam, region]);
+  }, [firstStep, exam, region]);
 
   // Event handlers
   const handlers = useAppHandlers({
-    currentStep: state.currentStep,
+    currentStep,
     setCurrentStep: state.setCurrentStep,
-    formData: state.formData,
+    formData,
     setFormData: state.setFormData,
     setPaymentData: state.setPaymentData,
     setResetDialogOpen: state.setResetDialogOpen,
-    loadExams: state.loadExams,
-    loadExamDates: state.loadExamDates,
   });
+
+  const selectedExam = state.exams.find((e) => e.id === exam);
+  const selectedDate = state.examDates.find((d) => d.id === formData.examDate);
+
+  const handleNewRegistration = () => {
+    setPaymentSubStep('card');
+    handlers.handleNewRegistration();
+  };
 
   // Get step content based on current step
   const getStepContent = () => {
-    switch (state.currentStep) {
+    switch (currentStep) {
       case FormStep.EXAM_SELECTION:
         return (
           <ExamSelectionStep
-            initialData={state.formData}
+            initialData={formData}
             onNext={handlers.handleNext}
             onDataChange={handlers.handleDataChange}
             examNames={state.examNames}
-            types={state.types}
             regions={state.regions}
-            loading={{
-              examNames: state.loading,
-              types: state.loading,
-              regions: state.loading,
-            }}
           />
         );
 
       case FormStep.PERSONALIZATION:
         return (
           <PersonalizationStep
-            initialData={state.formData}
+            initialData={formData}
             onNext={handlers.handleNext}
             onPrevious={handlers.handlePrevious}
             onDataChange={handlers.handleDataChange}
+            aside={
+              <SelectionPanel
+                formData={formData}
+                examNames={state.examNames}
+                regions={state.regions}
+                exams={state.exams}
+                examDates={state.examDates}
+                onChange={() => state.setCurrentStep(FormStep.EXAM_SELECTION)}
+              />
+            }
           />
         );
 
       case FormStep.CONFIRMATION:
         return (
           <ConfirmationStep
-            formData={state.formData as any}
+            formData={formData as any}
             types={state.types}
             regions={state.regions}
             examNames={state.examNames}
@@ -102,20 +117,22 @@ function App() {
             examDates={state.examDates}
             onNext={handlers.handleNext}
             onPrevious={handlers.handlePrevious}
+            onEdit={state.setCurrentStep}
           />
         );
 
       case FormStep.PAYMENT:
-        // Calculate original amount
-        const selectedExam = state.exams.find(e => e.id === state.formData.exam);
-        const originalAmount = selectedExam ? parseFloat(selectedExam.amount) : undefined;
-
         return (
           <PaymentStep
             paymentData={state.paymentData!}
-            onNewRegistration={handlers.handleNewRegistration}
-            formData={state.formData}
-            originalAmount={originalAmount}
+            onNewRegistration={handleNewRegistration}
+            formData={formData as any}
+            originalAmount={selectedExam ? parseFloat(selectedExam.amount) : undefined}
+            onSubStepChange={setPaymentSubStep}
+            examLabel={selectedExam?.name}
+            dateLabel={selectedDate ? formatDate(selectedDate.date) : undefined}
+            participant={formData.userProfile?.full_name}
+            deadline={selectedDate?.regstration_close ? formatDate(selectedDate.regstration_close) : undefined}
           />
         );
 
@@ -136,50 +153,32 @@ function App() {
     );
   }
 
+  const showStepper = currentStep !== FormStep.PAYMENT || paymentSubStep === 'card';
+
   // Main render
   return (
     <ThemeProvider theme={modernTheme}>
       <CssBaseline />
 
       {/* Header */}
-      <AppHeader
-        currentStep={state.currentStep}
-        onOpenResetDialog={handlers.handleOpenResetDialog}
-      />
+      <AppHeader currentStep={currentStep} onOpenResetDialog={handlers.handleOpenResetDialog} />
 
       {/* Main Content */}
       <MainLayout>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-          <Typography component="h1" sx={{ fontSize: { xs: '24px', sm: '32px' }, lineHeight: 1.2, fontWeight: 700, letterSpacing: '-0.01em' }}>
-            {t('header.page_title')}
-          </Typography>
-          <Typography sx={{ fontSize: '16px', lineHeight: 1.5, color: modernColors.gray[600] }}>
-            {t('header.page_subtitle')}
-          </Typography>
-        </Box>
+        {firstStep && !isMobile && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+            <Typography component="h1" sx={{ m: 0, fontSize: '32px', lineHeight: 1.2, fontWeight: 700, letterSpacing: '-0.01em' }}>
+              {t('header.page_title')}
+            </Typography>
+            <Typography sx={{ m: 0, fontSize: '16px', lineHeight: 1.5, color: modernColors.gray[600] }}>
+              {t('header.page_subtitle')}
+            </Typography>
+          </Box>
+        )}
 
-        {/* Progress Stepper */}
-        <ProgressStepper currentStep={state.currentStep} />
+        {showStepper && <ProgressStepper key={i18n.language} currentStep={currentStep} />}
 
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, alignItems: 'flex-start' }}>
-          {/* Step Content */}
-          <StepContent>{getStepContent()}</StepContent>
-
-          {state.currentStep !== FormStep.PAYMENT && (
-            <SelectionPanel
-              formData={state.formData}
-              examNames={state.examNames}
-              regions={state.regions}
-              exams={state.exams}
-              examDates={state.examDates}
-              onChange={
-                state.currentStep === FormStep.EXAM_SELECTION
-                  ? undefined
-                  : () => state.setCurrentStep(FormStep.EXAM_SELECTION)
-              }
-            />
-          )}
-        </Box>
+        {getStepContent()}
       </MainLayout>
 
       {/* Reset Confirmation Dialog */}

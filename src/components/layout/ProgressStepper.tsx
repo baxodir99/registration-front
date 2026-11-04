@@ -32,17 +32,35 @@ const ProgressStepper: React.FC<ProgressStepperProps> = ({ currentStep }) => {
   if (isMobile) {
     const next = steps[currentStep];
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Typography sx={{ fontSize: '15px', fontWeight: 700 }}>
-          {steps[currentStep - 1]} · {currentStep} / {steps.length}
-        </Typography>
-        <Box sx={{ display: 'grid', gridTemplateColumns: `repeat(${steps.length}, 1fr)`, gap: 0.5 }}>
+      <Box
+        sx={{
+          mx: -2,
+          mt: -3,
+          px: 2,
+          pt: 1.75,
+          pb: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1.25,
+          backgroundColor: modernColors.surface.primary,
+          borderBottom: `1px solid ${modernColors.gray[200]}`,
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 1 }}>
+          <Typography component="span" sx={{ fontSize: '18px', fontWeight: 700 }}>
+            {steps[currentStep - 1]}
+          </Typography>
+          <Typography component="span" sx={{ fontSize: '13px', fontWeight: 600, color: modernColors.gray[600], whiteSpace: 'nowrap' }}>
+            {currentStep} / {steps.length}
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'grid', gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))`, gap: 0.5 }}>
           {steps.map((_, index) => (
             <React.Fragment key={index}>{segment(index)}</React.Fragment>
           ))}
         </Box>
         {next && (
-          <Typography sx={{ fontSize: '13px', color: modernColors.gray[600] }}>
+          <Typography component="span" sx={{ fontSize: '12px', color: modernColors.gray[500] }}>
             {t('stepper.next_is', { name: next })}
           </Typography>
         )}
@@ -76,10 +94,10 @@ const ProgressStepper: React.FC<ProgressStepperProps> = ({ currentStep }) => {
           >
             {segment(index)}
             <Typography
+              component="span"
               sx={{
                 fontSize: '12px',
                 fontWeight: 600,
-                letterSpacing: '0.02em',
                 textTransform: 'uppercase',
                 color: done || current ? modernColors.primary[600] : modernColors.gray[500],
               }}
@@ -87,6 +105,7 @@ const ProgressStepper: React.FC<ProgressStepperProps> = ({ currentStep }) => {
               {done ? t('stepper.done') : t('stepper.step_n', { n: number })}
             </Typography>
             <Typography
+              component="span"
               sx={{
                 fontSize: '14px',
                 fontWeight: current ? 600 : 500,

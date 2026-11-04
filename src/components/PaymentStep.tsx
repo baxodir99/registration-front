@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Box, Fade } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 
 import { PaymentResponse, FormData } from '../types';
+import { SectionCard, StepLayout } from './ui';
+import InvoiceSummary, { PaymentDetails } from './payment/InvoiceSummary';
 import { apiService } from '../services/api';
 import { VALIDATION } from '../constants';
 import SubStepper, { SubStep } from './payment/SubStepper';
@@ -12,11 +13,12 @@ import OtpStep from './payment/OtpStep';
 import SuccessStep from './payment/SuccessStep';
 import CheckoutRedirectStep from './payment/CheckoutRedirectStep';
 
-interface PaymentStepProps {
+interface PaymentStepProps extends PaymentDetails {
   paymentData: PaymentResponse;
   onNewRegistration: () => void;
   formData?: FormData;
   originalAmount?: number;
+  onSubStepChange: (subStep: SubStep) => void;
 }
 
 const RESEND_COOLDOWN = 60;
@@ -39,32 +41,25 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   onNewRegistration,
   formData,
   originalAmount,
+  onSubStepChange,
+  ...details
 }) => {
   const hasDiscount =
     Boolean(formData?.promocodeData) &&
     originalAmount !== undefined &&
-    originalAmount > paymentData.amount;
+    originalAmount > Number(paymentData.amount);
 
   // Gateways like Birdarcha / VIA return a pay_url for external checkout.
   // ATMOS flow returns no pay_url — we collect the card inside the app.
   if (paymentData.pay_url) {
     return (
-      <Box
-        sx={{
-          width: '100%',
-          maxWidth: 980,
-          mx: 'auto',
-          px: { xs: 2, sm: 3, md: 4 },
-          py: { xs: 2, sm: 3 },
-        }}
-      >
-        <CheckoutRedirectStep
-          paymentData={paymentData}
-          originalAmount={originalAmount}
-          hasDiscount={hasDiscount}
-          onNewRegistration={onNewRegistration}
-        />
-      </Box>
+      <CheckoutRedirectStep
+        paymentData={paymentData}
+        originalAmount={originalAmount}
+        hasDiscount={hasDiscount}
+        onNewRegistration={onNewRegistration}
+        {...details}
+      />
     );
   }
 
@@ -74,6 +69,8 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
       originalAmount={originalAmount}
       hasDiscount={hasDiscount}
       onNewRegistration={onNewRegistration}
+      onSubStepChange={onSubStepChange}
+      details={details}
     />
   );
 };
@@ -83,6 +80,8 @@ interface AtmosCardFlowProps {
   originalAmount?: number;
   hasDiscount: boolean;
   onNewRegistration: () => void;
+  onSubStepChange: (subStep: SubStep) => void;
+  details: PaymentDetails;
 }
 
 const AtmosCardFlow: React.FC<AtmosCardFlowProps> = ({
@@ -90,12 +89,13 @@ const AtmosCardFlow: React.FC<AtmosCardFlowProps> = ({
   originalAmount,
   hasDiscount,
   onNewRegistration,
+  onSubStepChange,
+  details,
 }) => {
   const { t } = useTranslation();
   const [subStep, setSubStep] = useState<SubStep>('card');
   const [cardNumber, setCardNumber] = useState('');
   const [expiry, setExpiry] = useState('');
-  const [cardFocus, setCardFocus] = useState<'number' | 'expiry' | null>(null);
   const [otp, setOtp] = useState('');
   const [transactionId, setTransactionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -106,6 +106,11 @@ const AtmosCardFlow: React.FC<AtmosCardFlowProps> = ({
   const cardValid = cardDigits.length === VALIDATION.CARD_LENGTH;
   const expiryValid = VALIDATION.EXPIRY_PATTERN.test(expiry);
   const otpValid = otp.length === VALIDATION.OTP_LENGTH;
+
+  useEffect(() => {
+    onSubStepChange(subStep);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subStep]);
 
   useEffect(() => {
     if (resendIn <= 0) return;
@@ -225,67 +230,64 @@ const AtmosCardFlow: React.FC<AtmosCardFlowProps> = ({
     document.body.removeChild(link);
   };
 
-  return (
-    <Box
-      sx={{
-        width: '100%',
-        maxWidth: 980,
-        mx: 'auto',
-        px: { xs: 2, sm: 3, md: 4 },
-        py: { xs: 2, sm: 3 },
-      }}
-    >
-      <SubStepper current={subStep} />
+  if (subStep === 'success') {
+    return (
+      <SuccessStep
+        paymentData={paymentData}
+        onDownload={handleDownloadInfo}
+        onNewRegistration={onNewRegistration}
+      />
+    );
+  }
 
-      <Fade in key={subStep} timeout={250}>
-        <Box>
-          {subStep === 'card' && (
+  return (
+    <StepLayout
+      aside={
+        <InvoiceSummary
+          paymentData={paymentData}
+          originalAmount={originalAmount}
+          hasDiscount={hasDiscount}
+          compact={subStep === 'otp'}
+          support={subStep === 'card'}
+          {...details}
+          deadline={undefined}
+        />
+      }
+    >
+      <SectionCard sx={{ gap: 2.75 }}>
+        {subStep === 'card' && (
+          <>
+            <SubStepper current={subStep} />
             <CardStep
               cardNumber={cardNumber}
               setCardNumber={(v) => setCardNumber(formatCardNumber(v))}
               expiry={expiry}
               setExpiry={(v) => setExpiry(formatExpiry(v))}
-              cardFocus={cardFocus}
-              setCardFocus={setCardFocus}
               cardValid={cardValid}
               expiryValid={expiryValid}
               error={error}
               loading={loading}
               onSubmit={handleBindCard}
-              paymentData={paymentData}
-              originalAmount={originalAmount}
-              hasDiscount={hasDiscount}
             />
-          )}
-          {subStep === 'otp' && (
-            <OtpStep
-              otp={otp}
-              setOtp={setOtp}
-              last4={cardDigits.slice(-4)}
-              error={error}
-              loading={loading}
-              onConfirm={handleConfirmAndPay}
-              onBack={handleBackToCard}
-              onResend={handleResend}
-              resendIn={resendIn}
-              otpValid={otpValid}
-              paymentData={paymentData}
-              originalAmount={originalAmount}
-              hasDiscount={hasDiscount}
-            />
-          )}
-          {subStep === 'success' && (
-            <SuccessStep
-              paymentData={paymentData}
-              originalAmount={originalAmount}
-              hasDiscount={hasDiscount}
-              onDownload={handleDownloadInfo}
-              onNewRegistration={onNewRegistration}
-            />
-          )}
-        </Box>
-      </Fade>
-    </Box>
+          </>
+        )}
+        {subStep === 'otp' && (
+          <OtpStep
+            otp={otp}
+            setOtp={setOtp}
+            last4={cardDigits.slice(-4)}
+            error={error}
+            loading={loading}
+            onConfirm={handleConfirmAndPay}
+            onBack={handleBackToCard}
+            onResend={handleResend}
+            resendIn={resendIn}
+            otpValid={otpValid}
+            amount={Number(paymentData.amount)}
+          />
+        )}
+      </SectionCard>
+    </StepLayout>
   );
 };
 

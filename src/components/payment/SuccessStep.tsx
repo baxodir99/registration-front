@@ -1,157 +1,76 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
-import {
-  CheckCircle as CheckCircleIcon,
-  Download as DownloadIcon,
-  InfoOutlined as InfoIcon,
-} from '@mui/icons-material';
+import { Box, Button, Link, Typography } from '@mui/material';
+import { Check as CheckIcon, Download as DownloadIcon, InfoOutlined as InfoIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
-
+import { SUPPORT_PHONE_TEL } from '../../constants';
 import { PaymentResponse } from '../../types';
-import { OutlinedButton } from '../MD3Components';
-import { modernColors, modernBorderRadius } from '../../theme/modernTheme';
-import InvoiceSummary from './InvoiceSummary';
+import { formatMoney } from '../../utils/price';
+import { modernColors, statusColors } from '../../theme/modernTheme';
+import { SecondaryButton } from '../ui';
 
 interface SuccessStepProps {
   paymentData: PaymentResponse;
-  originalAmount?: number;
-  hasDiscount: boolean;
   onDownload: () => void;
   onNewRegistration: () => void;
 }
 
-const SuccessStep: React.FC<SuccessStepProps> = ({
-  paymentData,
-  originalAmount,
-  hasDiscount,
-  onDownload,
-  onNewRegistration,
-}) => {
+const SuccessStep: React.FC<SuccessStepProps> = ({ paymentData, onDownload, onNewRegistration }) => {
   const { t } = useTranslation();
+  const cardSx = {
+    backgroundColor: modernColors.surface.primary,
+    border: `1px solid ${modernColors.gray[200]}`,
+  };
 
   return (
-    <Box sx={{ maxWidth: 560, mx: 'auto' }}>
-      <Box sx={{ textAlign: 'center', mb: 4 }}>
-        <Box
-          sx={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 88,
-            height: 88,
-            borderRadius: '50%',
-            backgroundColor: '#DCFCE7',
-            color: '#15803D',
-            mb: 2.5,
-            animation: 'successPop 0.5s ease-out',
-            '@keyframes successPop': {
-              '0%': { transform: 'scale(0)', opacity: 0 },
-              '60%': { transform: 'scale(1.1)' },
-              '100%': { transform: 'scale(1)', opacity: 1 },
-            },
-          }}
-        >
-          <CheckCircleIcon sx={{ fontSize: 56 }} />
+    <Box sx={{ width: '100%', maxWidth: 712, mx: 'auto', pt: { xs: 0, sm: 2 }, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+      <Box
+        component="section"
+        sx={{ ...cardSx, borderRadius: '20px', p: { xs: 3, sm: '40px 32px' }, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5, textAlign: 'center' }}
+      >
+        <Box sx={{ width: 72, height: 72, borderRadius: '36px', backgroundColor: statusColors.success.dot, color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <CheckIcon sx={{ fontSize: 40 }} />
         </Box>
-        <Typography
-          variant="h2"
-          sx={{
-            fontSize: { xs: 26, sm: 32 },
-            fontWeight: 700,
-            color: modernColors.gray[900],
-            mb: 1,
-          }}
-        >
+        <Typography component="h1" sx={{ m: 0, fontSize: { xs: '24px', sm: '30px' }, fontWeight: 700 }}>
           {t('payment.card.success_title')}
         </Typography>
-        <Typography sx={{ fontSize: 15, color: modernColors.gray[600] }}>
+        <Typography sx={{ m: 0, fontSize: '16px', color: modernColors.gray[600] }}>
           {t('payment.card.success_subtitle')}
         </Typography>
-      </Box>
-
-      <Box sx={{ mb: 3 }}>
-        <InvoiceSummary
-          paymentData={paymentData}
-          originalAmount={originalAmount}
-          hasDiscount={hasDiscount}
-          paid
-        />
+        <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: '8px 20px', fontSize: '14px', color: modernColors.gray[700] }}>
+          <span>{t('payment.card.invoice_short')}: <Box component="strong" sx={{ color: modernColors.gray[900] }}>{paymentData.invoice}</Box></span>
+          <span>{t('payment.card.amount_short')}: <Box component="strong" sx={{ color: modernColors.gray[900] }}>{formatMoney(paymentData.amount)} {t('payment.currency')}</Box></span>
+          <Box component="span" sx={{ px: 1.25, py: 0.25, borderRadius: '10px', backgroundColor: statusColors.success.bg, color: statusColors.success.text, fontWeight: 600 }}>
+            {t('payment.card.paid_badge')}
+          </Box>
+        </Box>
       </Box>
 
       {paymentData.info_doc && (
-        <Box
-          sx={{
-            mb: 3,
-            p: 2.5,
-            borderRadius: modernBorderRadius.xs,
-            border: `1px dashed ${modernColors.primary[300]}`,
-            backgroundColor: modernColors.primary[50],
-            display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
-            gap: 2,
-            alignItems: { xs: 'stretch', sm: 'center' },
-            justifyContent: 'space-between',
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-            <InfoIcon sx={{ color: modernColors.primary[700], mt: 0.25 }} />
-            <Box>
-              <Typography
-                sx={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: modernColors.gray[900],
-                  mb: 0.5,
-                }}
-              >
-                {t('payment.exam_info_title')}
-              </Typography>
-              <Typography sx={{ fontSize: 13, color: modernColors.gray[600] }}>
-                {t('payment.exam_info_description')}
-              </Typography>
-            </Box>
+        <Box component="section" sx={{ ...cardSx, borderRadius: '16px', p: 3, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 2.25 }}>
+          <Box sx={{ width: 52, height: 62, borderRadius: '8px', backgroundColor: statusColors.error.bg, color: statusColors.error.text, fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            PDF
           </Box>
-          <OutlinedButton
-            onClick={onDownload}
-            startIcon={<DownloadIcon />}
-            sx={{ flexShrink: 0 }}
-          >
-            {t('payment.download_exam_info')}
-          </OutlinedButton>
+          <Box sx={{ flex: '1 1 280px', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            <Typography component="h2" sx={{ m: 0, fontSize: '17px', fontWeight: 700 }}>{t('payment.exam_info_title')}</Typography>
+            <Typography sx={{ m: 0, fontSize: '14px', lineHeight: 1.5, color: modernColors.gray[600] }}>{t('payment.exam_info_note')}</Typography>
+          </Box>
+          <Button variant="contained" disableElevation onClick={onDownload} startIcon={<DownloadIcon />} sx={{ minHeight: 52, py: 0, px: 2.5, borderRadius: '12px', fontSize: '15px', fontWeight: 600 }}>
+            {t('common.download')}
+          </Button>
         </Box>
       )}
 
-      <Box
-        sx={{
-          mb: 4,
-          p: 2,
-          borderRadius: modernBorderRadius.xs,
-          backgroundColor: modernColors.surface.secondary,
-          display: 'flex',
-          gap: 1.5,
-          alignItems: 'flex-start',
-        }}
-      >
-        <InfoIcon sx={{ fontSize: 20, color: modernColors.gray[500], mt: 0.25 }} />
-        <Typography
-          sx={{
-            fontSize: 13,
-            color: modernColors.gray[600],
-            lineHeight: 1.7,
-          }}
-        >
-          {t('payment.card.success_info')}
-        </Typography>
+      <Box sx={{ display: 'flex', gap: 1.25, alignItems: 'flex-start', p: '14px 16px', borderRadius: '12px', backgroundColor: modernColors.primary[50], fontSize: '14px', lineHeight: 1.5 }}>
+        <InfoIcon sx={{ fontSize: 20, mt: '1px', color: modernColors.primary[600] }} />
+        <span>
+          {t('payment.card.success_note')}{' '}
+          <Link href={`tel:${SUPPORT_PHONE_TEL}`} sx={{ fontWeight: 600 }}>(95) 515-68-68</Link>
+        </span>
       </Box>
 
-      <Box sx={{ textAlign: 'center' }}>
-        <OutlinedButton
-          onClick={onNewRegistration}
-          sx={{ px: 5, width: { xs: '100%', sm: 'auto' } }}
-        >
-          {t('payment.new_registration')}
-        </OutlinedButton>
-      </Box>
+      <SecondaryButton onClick={onNewRegistration} sx={{ alignSelf: 'center', minHeight: 48, fontSize: '15px' }}>
+        {t('payment.new_registration')}
+      </SecondaryButton>
     </Box>
   );
 };

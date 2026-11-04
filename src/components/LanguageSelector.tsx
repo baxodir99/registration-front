@@ -1,5 +1,5 @@
 import React from "react";
-import { FormControl, Select, MenuItem, Box, Typography } from "@mui/material";
+import { FormControl, Select, MenuItem, Box, Typography, useMediaQuery } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { LANGUAGES } from "../constants";
 import { modernColors } from "../theme/modernTheme";
@@ -21,16 +21,18 @@ const LanguageLabel: React.FC<{ short: string; name: string }> = ({ short, name 
 
 const LanguageSelector: React.FC = () => {
   const { i18n, t } = useTranslation();
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   return (
-    <FormControl size="small" sx={{ minWidth: 150 }}>
+    <FormControl size="small" sx={{ minWidth: isMobile ? 0 : 150 }}>
       <Select
         value={i18n.language}
         onChange={(e) => i18n.changeLanguage(e.target.value as Language)}
         inputProps={{ "aria-label": t("header.language") }}
         renderValue={(selected) => {
           const lang = LANGUAGES.find((l) => l.code === selected);
-          return lang ? <LanguageLabel short={lang.short} name={lang.name} /> : null;
+          if (!lang) return null;
+          return isMobile ? lang.short : <LanguageLabel short={lang.short} name={lang.name} />;
         }}
         sx={{
           minHeight: 44,

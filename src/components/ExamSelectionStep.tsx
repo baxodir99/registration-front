@@ -1,146 +1,71 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
-  Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Skeleton,
-  Alert,
-  CardContent,
-  TextField,
-  InputAdornment,
-  IconButton,
+  Button,
   CircularProgress,
+  IconButton,
+  InputAdornment,
+  MenuItem,
+  OutlinedInput,
+  Select,
+  Typography,
   useMediaQuery,
 } from '@mui/material';
-import { StaticDatePicker } from '@mui/x-date-pickers/StaticDatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { PickersDay } from '@mui/x-date-pickers/PickersDay';
-import dayjs, { Dayjs } from 'dayjs';
-import 'dayjs/locale/uz-latn';
-import 'dayjs/locale/ru';
-import { SurfaceCard, FilledButton } from './MD3Components';
-import { useTranslation } from 'react-i18next';
+import { Check as CheckIcon, Close as CloseIcon } from '@mui/icons-material';
+import dayjs from 'dayjs';
 import { useFormik } from 'formik';
+import { useTranslation } from 'react-i18next';
 import { apiService } from '../services/api';
-import { examSelectionSchema, formatDate } from '../utils/validation';
-import { modernColors, modernBorderRadius } from '../theme/modernTheme';
+import { examSelectionSchema } from '../utils/validation';
+import { dayMonth, longDate } from '../utils/dates';
+import { discountedAmount, formatMoney } from '../utils/price';
+import { modernColors, statusColors } from '../theme/modernTheme';
+import { Exam, ExamDate, ExamName, FormData, PromoCode, Region } from '../types';
+import ExamCalendar, { dateStatus } from './ExamCalendar';
 import {
-  Type,
-  Region,
-  ExamName,
-  Exam,
-  ExamDate,
-  FormData,
-  PromoCode,
-} from '../types';
-import {
-  Close as CloseIcon,
-} from '@mui/icons-material';
-
-// Availability status color constants for consistency
-const AVAILABILITY_COLORS = {
-  available: {
-    main: '#2e7d32',      // Green
-    light: '#e8f5e8',     // Light green
-    icon: '✓'             // Check mark
-  },
-  half: {
-    main: '#f57c00',      // Orange
-    light: '#fff3e0',     // Light orange
-    icon: '!'             // Exclamation mark
-  },
-  full: {
-    main: '#d32f2f',      // Red
-    light: '#ffebee',     // Light red
-    icon: '✕'             // X mark
-  }
-} as const;
+  AsideCard,
+  CardTitle,
+  Divider,
+  FieldHint,
+  FieldLabel,
+  InfoItem,
+  inputSx,
+  PrimaryButton,
+  SectionCard,
+  StepLayout,
+} from './ui';
 
 interface ExamSelectionStepProps {
   initialData?: Partial<FormData>;
   onNext: (data: Partial<FormData>) => void;
   onDataChange: (data: Partial<FormData>) => void;
-  // Data passed from parent to avoid duplicate API calls
   examNames: ExamName[];
-  types: Type[];
   regions: Region[];
-  loading: {
-    examNames: boolean;
-    types: boolean;
-    regions: boolean;
-  };
 }
+
+const PROMO_DEBOUNCE = 500;
 
 const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
   initialData,
   onNext,
   onDataChange,
-  examNames: propsExamNames,
-  types: propsTypes,
-  regions: propsRegions,
-  loading: propsLoading,
+  examNames,
+  regions,
 }) => {
   const { t, i18n } = useTranslation();
   const isMobile = useMediaQuery('(max-width:600px)');
 
-  // Set dayjs locale based on current language
-  React.useEffect(() => {
-    const currentLang = i18n.language;
-    if (currentLang === 'uz') {
-      dayjs.locale('uz-latn');
-    } else if (currentLang === 'ru') {
-      dayjs.locale('ru');
-    } else {
-      dayjs.locale('en');
-    }
-  }, [i18n.language]);
-  
-  // Use data from props to avoid duplicate API calls
-  const examNames = propsExamNames;
-  const types = propsTypes;
-  const regions = propsRegions;
-  
-  // Local state only for data that needs to be loaded based on form changes
   const [exams, setExams] = useState<Exam[]>([]);
   const [examDates, setExamDates] = useState<ExamDate[]>([]);
-  
-  // Loading states - use props for initial data, local for conditional data
-  const [localLoading, setLocalLoading] = useState({
-    exams: false,
-    examDates: false,
-  });
-  
-  const loading = {
-    examNames: propsLoading.examNames,
-    types: propsLoading.types,
-    regions: propsLoading.regions,
-    exams: localLoading.exams,
-    examDates: localLoading.examDates,
-  };
-  
-  // Error state
+  const [datesLoading, setDatesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  // Selected exam for price display
-  const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
+  const [month, setMonth] = useState(dayjs().startOf('month'));
 
-  // Selected date for calendar
-  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
-
-  // Available dates for the calendar
-  const [availableDates, setAvailableDates] = useState<Date[]>([]);
-
-  // Promocode state
   const [promocodeInput, setPromocodeInput] = useState(initialData?.promocode || '');
   const [promocodeData, setPromocodeData] = useState<PromoCode | null>(initialData?.promocodeData || null);
   const [promocodeLoading, setPromocodeLoading] = useState(false);
   const [promocodeError, setPromocodeError] = useState<string | null>(null);
-  const [promocodeSuccess, setPromocodeSuccess] = useState(false);
-  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const formik = useFormik({
     initialValues: {
@@ -151,1231 +76,381 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
     },
     validationSchema: examSelectionSchema,
     onSubmit: (values) => {
-      const formData: Partial<FormData> = {
+      onNext({
         examName: Number(values.examName),
         region: Number(values.region),
         exam: Number(values.exam),
         examDate: Number(values.examDate),
         promocode: promocodeData ? promocodeInput : undefined,
         promocodeData: promocodeData || undefined,
-      };
-      onNext(formData);
+      });
     },
   });
+  const { examName, region, exam, examDate } = formik.values;
 
-  // Initial data loading removed - now using props from parent
-
-  // Watch form changes and notify parent - optimized to prevent excessive calls
   useEffect(() => {
     onDataChange({
-      examName: formik.values.examName ? Number(formik.values.examName) : undefined,
-      region: formik.values.region ? Number(formik.values.region) : undefined,
-      exam: formik.values.exam ? Number(formik.values.exam) : undefined,
-      examDate: formik.values.examDate ? Number(formik.values.examDate) : undefined,
+      examName: examName ? Number(examName) : undefined,
+      region: region ? Number(region) : undefined,
+      exam: exam ? Number(exam) : undefined,
+      examDate: examDate ? Number(examDate) : undefined,
       promocode: promocodeData ? promocodeInput : undefined,
       promocodeData: promocodeData || undefined,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    formik.values.examName,
-    formik.values.region,
-    formik.values.exam,
-    formik.values.examDate,
-    promocodeInput,
-    promocodeData,
-    // onDataChange is intentionally omitted to prevent infinite loop
-  ]);
+  }, [examName, region, exam, examDate, promocodeInput, promocodeData]);
 
-  // Load exams when examName changes
   useEffect(() => {
-    if (formik.values.examName && formik.values.examName !== '') {
-      loadExams();
-    }
-  }, [formik.values.examName]);
-
-  // Load exam dates when exam and region change
-  useEffect(() => {
-    if (formik.values.exam && formik.values.exam !== '' && formik.values.region && formik.values.region !== '') {
-      loadExamDates();
-    }
-  }, [formik.values.exam, formik.values.region]);
-
-  // Update selected exam for price display
-  useEffect(() => {
-    if (formik.values.exam && formik.values.exam !== '') {
-      const exam = exams.find(e => e.id === Number(formik.values.exam));
-      setSelectedExam(exam || null);
-    } else {
-      setSelectedExam(null);
-    }
-  }, [formik.values.exam, exams]);
-
-
-  const loadExams = async () => {
-    try {
-      setLocalLoading(prev => ({ ...prev, exams: true }));
-      setError(null);
-      
-      const params = { examname: Number(formik.values.examName) };
-      
-      const examsData = await apiService.getExams(params);
-      setExams(examsData);
-      
-      // Reset exam and examDate if they're not valid anymore
-      if (formik.values.exam && !examsData.find(e => e.id === Number(formik.values.exam))) {
-        formik.setFieldValue('exam', '');
-        formik.setFieldValue('examDate', '');
-      }
-      
-      setLocalLoading(prev => ({ ...prev, exams: false }));
-    } catch (error) {
-      console.error('Error loading exams:', error);
-      setError(t('common.error'));
-      setLocalLoading(prev => ({ ...prev, exams: false }));
-    }
-  };
-
-  const loadExamDates = async () => {
-    try {
-      setLocalLoading(prev => ({ ...prev, examDates: true }));
-      setError(null);
-
-      const params = {
-        exam: Number(formik.values.exam),
-        region: Number(formik.values.region),
-      };
-
-      const examDatesData = await apiService.getExamDates(params);
-
-      setExamDates(examDatesData);
-
-      // Update available dates for calendar
-      const dates = examDatesData.map(ed => new Date(ed.date));
-      setAvailableDates(dates);
-
-      // Reset examDate if it's not valid anymore
-      if (formik.values.examDate && !examDatesData.find(ed => ed.id === Number(formik.values.examDate))) {
-        formik.setFieldValue('examDate', '');
-        setSelectedDate(null);
-      }
-
-      setLocalLoading(prev => ({ ...prev, examDates: false }));
-    } catch (error) {
-      console.error('Error loading exam dates:', error);
-      setError(t('common.error'));
-      setLocalLoading(prev => ({ ...prev, examDates: false }));
-      // Clear dates on error
-      setExamDates([]);
-      setAvailableDates([]);
-    }
-  };
-
-  // Calculate price with promocode
-  const originalAmount = selectedExam ? parseFloat(selectedExam.amount) : 0;
-  const calculateDiscountedPrice = () => {
-    if (!promocodeData || !promocodeData.is_active) {
-      return originalAmount;
-    }
-
-    if (promocodeData.discount_type === 'percent') {
-      const discount = (promocodeData.discount_value / 100) * originalAmount;
-      return Math.max(0, originalAmount - discount);
-    } else if (promocodeData.discount_type === 'amount') {
-      return Math.max(0, originalAmount - promocodeData.discount_value);
-    }
-
-    return originalAmount;
-  };
-
-  const finalAmount = calculateDiscountedPrice();
-  const discountAmount = originalAmount - finalAmount;
-
-  // Auto-check promocode with debounce
-  const checkPromocodeAuto = async (code: string) => {
-    if (!code.trim() || code.trim().length < 3) {
-      setPromocodeData(null);
-      setPromocodeError(null);
-      setPromocodeSuccess(false);
+    if (!examName) {
+      setExams([]);
       return;
     }
+    let stale = false;
+    setError(null);
+    apiService
+      .getExams({ examname: Number(examName) })
+      .then((data) => {
+        if (stale) return;
+        setExams(data);
+        if (data.length === 1) {
+          formik.setFieldValue('exam', data[0].id);
+        } else if (exam && !data.some((e) => e.id === Number(exam))) {
+          formik.setFieldValue('exam', '');
+          formik.setFieldValue('examDate', '');
+        }
+      })
+      .catch(() => {
+        if (!stale) setError(t('common.error'));
+      });
+    return () => {
+      stale = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [examName]);
 
+  useEffect(() => {
+    if (!exam || !region) {
+      setExamDates([]);
+      return;
+    }
+    let stale = false;
+    setDatesLoading(true);
+    setError(null);
+    apiService
+      .getExamDates({ exam: Number(exam), region: Number(region) })
+      .then((data) => {
+        if (stale) return;
+        setExamDates(data);
+        const selected = data.find((d) => d.id === Number(examDate));
+        if (selected) {
+          setMonth(dayjs(selected.date).startOf('month'));
+        } else {
+          setMonth(dayjs().startOf('month'));
+          if (examDate) formik.setFieldValue('examDate', '');
+        }
+      })
+      .catch(() => {
+        if (!stale) {
+          setExamDates([]);
+          setError(t('common.error'));
+        }
+      })
+      .finally(() => {
+        if (!stale) setDatesLoading(false);
+      });
+    return () => {
+      stale = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exam, region]);
+
+  const pickExamName = (id: number) => {
+    if (id === Number(examName)) return;
+    formik.setValues({ examName: id, region, exam: '', examDate: '' });
+  };
+
+  const checkPromocode = async (code: string) => {
+    if (code.trim().length < 3) {
+      setPromocodeData(null);
+      setPromocodeError(null);
+      return;
+    }
     try {
       setPromocodeLoading(true);
       setPromocodeError(null);
-      setPromocodeSuccess(false);
-
       const response = await apiService.checkPromocode(code.trim());
-
       if (response.status === 1 && response.data) {
         setPromocodeData(response.data);
-        setPromocodeSuccess(true);
-        setPromocodeError(null);
       } else {
         setPromocodeError(response.message || t('confirmation.promocode_invalid'));
         setPromocodeData(null);
-        setPromocodeSuccess(false);
       }
-    } catch (error: any) {
-      console.error('Promocode check error:', error);
-      setPromocodeError(error.response?.data?.message || t('confirmation.promocode_invalid'));
+    } catch (err: any) {
+      setPromocodeError(err.response?.data?.message || t('confirmation.promocode_invalid'));
       setPromocodeData(null);
-      setPromocodeSuccess(false);
     } finally {
       setPromocodeLoading(false);
     }
   };
 
-  // Handle promocode input change with debounce
   const handlePromocodeChange = (value: string) => {
-    const upperValue = value.toUpperCase();
-    setPromocodeInput(upperValue);
-
-    // Clear previous timer
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
-    }
-
-    // Reset states when input is cleared
-    if (!upperValue.trim()) {
-      setPromocodeData(null);
-      setPromocodeError(null);
-      setPromocodeSuccess(false);
-      setPromocodeLoading(false);
-      return;
-    }
-
-    // Set new timer for auto-check after 500ms
-    const timer = setTimeout(() => {
-      checkPromocodeAuto(upperValue);
-    }, 500);
-
-    setDebounceTimer(timer);
-  };
-
-  // Handle promocode removal
-  const handleRemovePromocode = () => {
-    setPromocodeInput('');
+    const code = value.toUpperCase();
+    setPromocodeInput(code);
     setPromocodeData(null);
     setPromocodeError(null);
-    setPromocodeSuccess(false);
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
+    if (debounce.current) clearTimeout(debounce.current);
+    if (code.trim()) {
+      debounce.current = setTimeout(() => checkPromocode(code), PROMO_DEBOUNCE);
     }
   };
 
-  // Cleanup debounce timer on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceTimer) {
-        clearTimeout(debounceTimer);
-      }
-    };
-  }, [debounceTimer]);
+  useEffect(
+    () => () => {
+      if (debounce.current) clearTimeout(debounce.current);
+    },
+    []
+  );
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    formik.handleSubmit();
-  };
+  const selectedExamName = examNames.find((e) => e.id === Number(examName));
+  const selectedExam = exams.find((e) => e.id === Number(exam));
+  const selectedRegion = regions.find((r) => r.id === Number(region));
+  const selectedDate = examDates.find((d) => d.id === Number(examDate));
+  const original = selectedExam ? parseFloat(selectedExam.amount) : 0;
+  const final = discountedAmount(original, promocodeData);
+  const currency = t('payment.currency');
+  const canContinue = Boolean(selectedExam && selectedRegion && selectedDate && dateStatus(selectedDate) !== 'full');
+  const percent = selectedDate?.capacity ? Math.min((selectedDate.booked / selectedDate.capacity) * 100, 100) : 0;
 
-  const handleDateChange = (date: Dayjs | null) => {
-    setSelectedDate(date);
-
-    if (date) {
-      // Find the exam date that matches the selected date using consistent date comparison
-      const matchingExamDate = examDates.find(ed => {
-        const examDateDayjs = dayjs(ed.date);
-        return examDateDayjs.format('YYYY-MM-DD') === date.format('YYYY-MM-DD');
-      });
-
-      if (matchingExamDate) {
-        formik.setFieldValue('examDate', String(matchingExamDate.id));
-      } else {
-        formik.setFieldValue('examDate', '');
-      }
-    } else {
-      formik.setFieldValue('examDate', '');
-    }
-  };
-
-  const shouldDisableDate = (date: Dayjs) => {
-    if (!date || !availableDates.length) return true;
-    
-    return !availableDates.some(availableDate => {
-      const availableDateDayjs = dayjs(availableDate);
-      return availableDateDayjs.format('YYYY-MM-DD') === date.format('YYYY-MM-DD');
-    });
-  };
-
-  const getDateAvailability = (date: Dayjs) => {
-    if (!date || !examDates.length) return null;
-    
-    const matchingExamDate = examDates.find(ed => {
-      // Use dayjs for consistent date comparison
-      const examDateDayjs = dayjs(ed.date);
-      return examDateDayjs.format('YYYY-MM-DD') === date.format('YYYY-MM-DD');
-    });
-
-    return matchingExamDate ? matchingExamDate.availability_status : null;
-  };
-
-  // Define CustomDay outside of render to prevent re-creation
-  const CustomDay = React.useMemo(() => {
-    return (props: any) => {
-      const { day, ...otherProps } = props;
-
-      // Early return if day is invalid
-      if (!day) {
-        return <PickersDay {...otherProps} day={day} />;
-      }
-
-      const availabilityStatus = getDateAvailability(day);
-
-      // Color mapping functions using constants for consistency
-      const getColors = () => {
-        if (!availabilityStatus) {
-          return { main: 'transparent', light: 'transparent', icon: '' };
-        }
-
-        switch (availabilityStatus) {
-          case 'full':
-            return AVAILABILITY_COLORS.full;
-          case 'half':
-            return AVAILABILITY_COLORS.half;
-          case 'available':
-            return AVAILABILITY_COLORS.available;
-          default:
-            return { main: 'transparent', light: 'transparent', icon: '' };
-        }
-      };
-
-      const colors = getColors();
-
-      const handleDayClick = (event: React.MouseEvent) => {
-        // Let the original onClick handler run
-        if (otherProps.onClick) {
-          otherProps.onClick(event);
-        }
-      };
-
-      // Base styles for ALL days (with or without availability)
-      const baseStyles = {
-        position: 'relative !important',
-        transition: 'all 0.2s ease',
-        // Set text color - always dark for visibility
-        color: '#1C1917 !important',
-        fontWeight: '500 !important',
-        // Mobile-first: explicit sizing with !important to override MUI defaults
-        fontSize: '0.875rem !important',
-        width: '40px !important',
-        height: '40px !important',
-        minWidth: '40px !important',
-        minHeight: '40px !important',
-        display: 'inline-flex !important',
-        alignItems: 'center !important',
-        justifyContent: 'center !important',
-        // Ensure text is visible and not hidden
-        visibility: 'visible !important',
-        opacity: '1 !important',
-
-        // Target MUI PickersDay internal button
-        '& button': {
-          color: '#1C1917 !important',
-          fontSize: 'inherit !important',
-        },
-
-        // Target all possible text elements in MUI PickersDay
-        '& *': {
-          color: '#1C1917 !important',
-          visibility: 'visible !important',
-          opacity: '1 !important',
-        },
-
-        // Target MUI internal classes
-        '& .MuiButtonBase-root': {
-          color: '#1C1917 !important',
-        },
-
-        '& .MuiPickersDay-root': {
-          color: '#1C1917 !important',
-        },
-
-        // Tablet (sm: 600px+)
-        '@media (min-width: 600px)': {
-          fontSize: '0.9375rem !important',
-          width: '46px !important',
-          height: '46px !important',
-          minWidth: '46px !important',
-          minHeight: '46px !important',
-        },
-
-        // Medium (md: 900px+)
-        '@media (min-width: 900px)': {
-          fontSize: '0.9375rem !important',
-          width: '48px !important',
-          height: '48px !important',
-          minWidth: '48px !important',
-          minHeight: '48px !important',
-        },
-
-        // Desktop (lg: 1200px+)
-        '@media (min-width: 1200px)': {
-          fontSize: '1rem !important',
-          width: '52px !important',
-          height: '52px !important',
-          minWidth: '52px !important',
-          minHeight: '52px !important',
-        },
-
-        '&.Mui-selected': {
-          backgroundColor: '#0284C7 !important',
-          color: '#FFFFFF !important',
-          fontWeight: '700 !important',
-          '& *': {
-            color: '#FFFFFF !important',
-          },
-          '&:hover': {
-            backgroundColor: '#0369A1 !important',
-            color: '#FFFFFF !important',
-          }
-        },
-
-        // Ensure disabled days are properly styled
-        '&.Mui-disabled': {
-          backgroundColor: 'transparent !important',
-          border: '2px solid transparent !important',
-          color: '#A8A29E !important',
-          '& *': {
-            color: '#A8A29E !important',
-          },
-        },
-      };
-
-      // Styles specific to days with availability status
-      const availabilityStyles = availabilityStatus ? {
-        backgroundColor: colors.light,
-        border: `2px solid ${colors.main}`,
-        borderRadius: modernBorderRadius.md,
-
-        '&:hover': {
-          backgroundColor: colors.light,
-          transform: 'scale(1.02)',
-          color: '#1C1917 !important',
-        },
-
-        '&.Mui-selected': {
-          backgroundColor: `${colors.main} !important`,
-          color: '#FFFFFF !important',
-          '&:hover': {
-            backgroundColor: `${colors.main} !important`,
-          }
-        },
-      } : {
-        // No availability - simple border
-        borderRadius: modernBorderRadius.md,
-
-        '&:hover': {
-          backgroundColor: '#FAFAF9',
-          transform: 'scale(1.02)',
-        },
-      };
-
-      // Manually merge styles to ensure media queries work correctly
-      const mergedStyles = {
-        ...baseStyles,
-        ...availabilityStyles,
-        // Ensure base styles are not overridden
-        color: baseStyles.color,
-        fontWeight: baseStyles.fontWeight,
-        fontSize: baseStyles.fontSize,
-        width: baseStyles.width,
-        height: baseStyles.height,
-        minWidth: baseStyles.minWidth,
-        minHeight: baseStyles.minHeight,
-        display: baseStyles.display,
-        alignItems: baseStyles.alignItems,
-        justifyContent: baseStyles.justifyContent,
-      };
-
-      // Merge badge back into sx to maintain grid layout
-      const finalStyles = {
-        ...mergedStyles,
-        // Badge as ::before to not break grid
-        ...(availabilityStatus ? {
-          '&::before': {
-            content: `"${colors.icon}"`,
-            position: 'absolute',
-            top: '-3px',
-            right: '-3px',
-            width: '15px',
-            height: '15px',
-            borderRadius: '50%',
-            backgroundColor: 'white',
-            border: `2px solid ${colors.main}`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '9px',
-            fontWeight: 700,
-            color: colors.main,
-            lineHeight: 1,
-            zIndex: 10,
-            boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
-            pointerEvents: 'none',
-          },
-          '@media (min-width: 600px)': {
-            '&::before': {
-              width: '16px',
-              height: '16px',
-              fontSize: '10px',
-            }
-          },
-          '@media (min-width: 900px)': {
-            '&::before': {
-              width: '17px',
-              height: '17px',
-              fontSize: '11px',
-            }
-          },
-          '@media (min-width: 1200px)': {
-            '&::before': {
-              top: '-4px',
-              right: '-4px',
-              width: '18px',
-              height: '18px',
-              fontSize: '12px',
-            }
-          },
-        } : {}),
-      };
-
-      return (
-        <PickersDay
-          {...otherProps}
-          day={day}
-          onClick={handleDayClick}
-          sx={finalStyles}
-          style={{
-            color: '#1C1917',
-            fontSize: '0.875rem',
-            width: '40px',
-            height: '40px',
-            minWidth: '40px',
-            minHeight: '40px',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            visibility: 'visible',
-            opacity: 1,
-          }}
-        />
-      );
-    };
-  }, [examDates]); // Re-create only when examDates change
-
-  return (
-    <Box component="form" onSubmit={handleSubmit}>
-      <Typography variant="h2" gutterBottom sx={{
-        fontSize: { xs: '20px', sm: '24px', md: '28px' },
-        fontWeight: 600,
-        mb: { xs: 2, sm: 3, md: 4 },
-        color: 'text.primary'
-      }}>
-        {t('exam_selection.title')}
-      </Typography>
-
-      {error && (
-        <Alert severity="error" sx={{ mb: { xs: 2, sm: 3, md: 4 }, borderRadius: modernBorderRadius.xs }}>
-          {error}
-        </Alert>
+  const aside = (
+    <AsideCard gap={2.25}>
+      {!isMobile && (
+        <>
+          <CardTitle size={18}>{t('exam_selection.your_choice')}</CardTitle>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75 }}>
+            <InfoItem strong label={t('exam_selection.summary_exam')} value={selectedExamName?.name || t('exam_selection.not_selected')} />
+            <InfoItem label={t('exam_selection.summary_direction')} value={selectedExam?.name || t('exam_selection.not_selected')} />
+            <InfoItem label={t('exam_selection.summary_region')} value={selectedRegion?.name || t('exam_selection.not_selected')} />
+            <InfoItem
+              label={t('exam_selection.summary_date')}
+              value={selectedDate ? longDate(selectedDate.date, i18n.language) : t('exam_selection.not_selected')}
+            />
+          </Box>
+          {selectedDate && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: modernColors.gray[700] }}>
+                <span>{t('exam_selection.occupancy')}</span>
+                <Box component="span" sx={{ fontWeight: 600, color: modernColors.gray[900] }}>
+                  {selectedDate.booked} / {selectedDate.capacity}
+                </Box>
+              </Box>
+              <Box sx={{ height: 6, borderRadius: '3px', backgroundColor: modernColors.gray[100], overflow: 'hidden' }}>
+                <Box
+                  sx={{
+                    width: `${percent}%`,
+                    height: 6,
+                    backgroundColor: dateStatus(selectedDate) === 'half' ? statusColors.warning.dot : statusColors.success.dot,
+                  }}
+                />
+              </Box>
+            </Box>
+          )}
+          <Divider />
+        </>
       )}
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3, md: 4 } }}>
-        {/* Exam Name - First step */}
-        <FormControl fullWidth>
-          <InputLabel>{t('exam_selection.exam_name')}</InputLabel>
-          {loading.examNames ? (
-            <Skeleton variant="rectangular" height={56} />
-          ) : (
-            <Select
-              name="examName"
-              value={formik.values.examName}
-              onChange={formik.handleChange}
-              error={formik.touched.examName && Boolean(formik.errors.examName)}
-              label={t('exam_selection.exam_name')}
-            >
-              <MenuItem value="">{t('exam_selection.exam_name_placeholder')}</MenuItem>
-              {examNames.map((examName) => (
-                <MenuItem key={examName.id} value={examName.id}>
-                  {examName.name}
-                </MenuItem>
-              ))}
-            </Select>
-          )}
-        </FormControl>
-
-
-        {/* Region - Third step */}
-        <FormControl fullWidth>
-          <InputLabel>{t('exam_selection.region')}</InputLabel>
-          {loading.regions ? (
-            <Skeleton variant="rectangular" height={56} />
-          ) : (
-            <Select
-              name="region"
-              value={formik.values.region}
-              onChange={formik.handleChange}
-              error={formik.touched.region && Boolean(formik.errors.region)}
-              label={t('exam_selection.region')}
-            >
-              <MenuItem value="">{t('exam_selection.region_placeholder')}</MenuItem>
-              {regions.map((region) => (
-                <MenuItem key={region.id} value={region.id}>
-                  {region.name}
-                </MenuItem>
-              ))}
-            </Select>
-          )}
-        </FormControl>
-
-        {/* Exam */}
-        <FormControl fullWidth>
-          <InputLabel>{t('exam_selection.exam')}</InputLabel>
-          {loading.exams ? (
-            <Skeleton variant="rectangular" height={56} />
-          ) : (
-            <Select
-              name="exam"
-              value={
-                exams.length > 0 && formik.values.exam && exams.find(e => e.id === Number(formik.values.exam))
-                  ? formik.values.exam
-                  : ''
-              }
-              onChange={formik.handleChange}
-              error={formik.touched.exam && Boolean(formik.errors.exam)}
-              label={t('exam_selection.exam')}
-              disabled={exams.length === 0}
-            >
-              <MenuItem value="">{t('exam_selection.exam_placeholder')}</MenuItem>
-              {exams.map((exam) => (
-                <MenuItem key={exam.id} value={exam.id}>
-                  {exam.name}
-                </MenuItem>
-              ))}
-            </Select>
-          )}
-        </FormControl>
-
-        {/* Exam Date */}
-        <Box>
-          <Typography variant="h4" gutterBottom sx={{
-            fontWeight: 600,
-            mb: { xs: 2, sm: 3, md: 4 },
-            fontSize: { xs: '16px', sm: '18px', md: '20px' }
-          }}>
-            {t('exam_selection.exam_date')}
-          </Typography>
-
-          {examDates.length === 0 && !loading.examDates && (
-            <Alert severity="warning" sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
-              {t('exam_selection.no_dates_available')}
-            </Alert>
-          )}
-
-          {formik.touched.examDate && formik.errors.examDate && (
-            <Alert severity="error" sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
-              {t(formik.errors.examDate as string)}
-            </Alert>
-          )}
-
-          {loading.examDates ? (
-            <Skeleton variant="rectangular" height={320} sx={{ borderRadius: modernBorderRadius.xs }} />
-          ) : (
-            <>
-              {/* Calendar Section */}
-              <SurfaceCard surfaceVariant="elevated" sx={{
-                p: { xs: 2, sm: 3, md: 4, lg: 6 },
-                width: '100%',
-                maxWidth: '100%',
-              }}>
-              <Box sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', lg: 'row' },
-                gap: { xs: 3, sm: 4, lg: 6 },
-                alignItems: { xs: 'flex-start', lg: 'flex-start' },
-                width: '100%',
-              }}>
-                {/* Calendar */}
-                <Box sx={{
-                  flex: { xs: '0 0 auto', lg: '1 1 65%' },
-                  display: 'flex',
-                  justifyContent: { xs: 'center', sm: 'center' },
-                  width: '100%',
-                  minHeight: { xs: '380px', sm: '420px', md: '450px', lg: '500px' },
-                  maxHeight: { xs: 'none', sm: 'none' },
-                  overflow: 'visible',
-                }}>
-                  <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <StaticDatePicker
-                      value={selectedDate}
-                      onChange={handleDateChange}
-                      shouldDisableDate={shouldDisableDate}
-                      disabled={examDates.length === 0}
-                      minDate={dayjs()}
-                      maxDate={dayjs().add(6, 'month')}
-                      displayStaticWrapperAs="desktop"
-                      slots={{
-                        day: CustomDay,
-                      }}
-                      slotProps={{
-                        layout: {
-                          sx: {
-                            width: '100%',
-                            maxWidth: '100%',
-
-                            '& .MuiDateCalendar-root': {
-                              backgroundColor: 'transparent',
-                              width: '100%',
-                              maxWidth: '100%',
-                              height: 'auto',
-                              minHeight: { xs: 'auto', sm: 'auto', md: '450px', lg: '500px' },
-
-                              // Mobile specific fixes
-                              '@media (max-width: 899px)': {
-                                width: '100% !important',
-                                maxWidth: '100% !important',
-                              },
-                            },
-                            '& .MuiPickersCalendarHeader-root': {
-                              paddingLeft: { xs: 1, sm: 1.5, md: 2 },
-                              paddingRight: { xs: 1, sm: 1.5, md: 2 },
-                              marginBottom: { xs: 1, sm: 1.5, md: 2 },
-                            },
-                            '& .MuiDayCalendar-root': {
-                              height: 'auto',
-                              width: '100%',
-
-                              // Mobile: ensure full width
-                              '@media (max-width: 899px)': {
-                                width: '100% !important',
-                              },
-                            },
-                            '& .MuiDayCalendar-header': {
-                              justifyContent: 'space-between',
-                              paddingLeft: { xs: '6px', sm: '6px', md: '8px', lg: '8px' },
-                              paddingRight: { xs: '6px', sm: '6px', md: '8px', lg: '8px' },
-                              marginBottom: { xs: '6px', sm: '8px', md: '8px', lg: '10px' },
-                            },
-                            '& .MuiDayCalendar-weekDayLabel': {
-                              width: { xs: '40px', sm: '46px', md: '48px', lg: '52px' },
-                              height: { xs: '40px', sm: '46px', md: '48px', lg: '52px' },
-                              fontSize: { xs: '0.75rem', sm: '0.8125rem', md: '0.8125rem', lg: '0.875rem' },
-                              margin: 0,
-                              fontWeight: 600,
-                            },
-                            '& .MuiDayCalendar-slideTransition': {
-                              minHeight: { xs: 'auto', sm: 'auto', md: '320px', lg: '340px' },
-                              overflow: 'visible !important',
-
-                              // Mobile: calculate height for 6 weeks
-                              '@media (max-width: 599px)': {
-                                minHeight: 'calc(6 * 40px + 5 * 6px) !important', // 6 rows * 40px + 5 gaps * 6px = 270px
-                                height: 'auto !important',
-                              },
-
-                              // Tablet
-                              '@media (min-width: 600px) and (max-width: 899px)': {
-                                minHeight: 'calc(6 * 46px + 5 * 6px) !important', // 6 rows * 46px + 5 gaps * 6px = 306px
-                                height: 'auto !important',
-                              },
-                            },
-                            '& .MuiDayCalendar-monthContainer': {
-                              height: 'auto',
-                              minHeight: { xs: 'auto', sm: 'auto', md: 'auto' },
-
-                              // Mobile: ensure it takes full height
-                              '@media (max-width: 899px)': {
-                                height: 'auto !important',
-                                display: 'flex !important',
-                                flexDirection: 'column !important',
-                              },
-                            },
-                            '& .MuiDayCalendar-weekContainer': {
-                              justifyContent: 'space-between',
-                              margin: 0,
-                              marginBottom: { xs: '6px', sm: '6px', md: '6px', lg: '6px' },
-                              paddingLeft: { xs: '6px', sm: '6px', md: '8px', lg: '8px' },
-                              paddingRight: { xs: '6px', sm: '6px', md: '8px', lg: '8px' },
-                              height: { xs: '40px', sm: '46px', md: '48px', lg: '52px' },
-
-                              // Mobile: enforce height with !important
-                              '@media (max-width: 899px)': {
-                                height: '40px !important',
-                                minHeight: '40px !important',
-                                maxHeight: '40px !important',
-                                display: 'flex !important',
-                                alignItems: 'center !important',
-                                justifyContent: 'space-between !important',
-                                marginBottom: '6px !important',
-                              },
-
-                              // Tablet
-                              '@media (min-width: 600px) and (max-width: 899px)': {
-                                height: '46px !important',
-                                minHeight: '46px !important',
-                                maxHeight: '46px !important',
-                              },
-
-                              // Medium
-                              '@media (min-width: 900px) and (max-width: 1199px)': {
-                                height: '48px !important',
-                                minHeight: '48px !important',
-                                maxHeight: '48px !important',
-                              },
-
-                              // Desktop
-                              '@media (min-width: 1200px)': {
-                                height: '52px !important',
-                                minHeight: '52px !important',
-                                maxHeight: '52px !important',
-                              },
-                            },
-                            '& .MuiPickersDay-root': {
-                              borderRadius: modernBorderRadius.md,
-                              margin: 0,
-                              fontSize: { xs: '0.875rem', sm: '0.9375rem', md: '0.9375rem', lg: '1rem' },
-                              width: { xs: '40px', sm: '46px', md: '48px', lg: '52px' },
-                              height: { xs: '40px', sm: '46px', md: '48px', lg: '52px' },
-                              fontWeight: 500,
-
-                              // Mobile: ensure visibility and proper sizing
-                              '@media (max-width: 899px)': {
-                                color: '#1C1917 !important',
-                                fontSize: '0.875rem !important',
-                                width: '40px !important',
-                                height: '40px !important',
-                                minWidth: '40px !important',
-                                minHeight: '40px !important',
-                                display: 'flex !important',
-                                alignItems: 'center !important',
-                                justifyContent: 'center !important',
-                              },
-
-                              // Tablet
-                              '@media (min-width: 600px) and (max-width: 899px)': {
-                                fontSize: '0.9375rem !important',
-                                width: '46px !important',
-                                height: '46px !important',
-                                minWidth: '46px !important',
-                                minHeight: '46px !important',
-                              },
-
-                              '&.Mui-disabled': {
-                                color: 'text.disabled',
-                                backgroundColor: 'transparent',
-                              },
-                            },
-                          }
-                        }
-                      }}
-                    />
-                  </LocalizationProvider>
-                </Box>
-
-                {/* Calendar Legend */}
-                <Box sx={{
-                  flex: { xs: '0 0 auto', lg: '1 1 35%' },
-                  p: { xs: 2.5, sm: 3, md: 4 },
-                  backgroundColor: modernColors.gray[50],
-                  borderRadius: modernBorderRadius.xxs,
-                  border: `1px solid ${modernColors.gray[200]}`,
-                  width: { xs: '100%', lg: 'auto' },
-                  alignSelf: { xs: 'stretch', lg: 'flex-start' },
-                }}>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  {t('exam_selection.legend')}:
-                </Typography>
-                <Box sx={{
-                  display: 'flex',
-                  gap: { xs: 2, sm: 3, md: 4 },
-                  flexWrap: 'wrap'
-                }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Box sx={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: modernBorderRadius.sm + 'px',
-                      backgroundColor: AVAILABILITY_COLORS.available.light,
-                      border: `2px solid ${AVAILABILITY_COLORS.available.main}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      position: 'relative',
-                    }}>
-                      <Box sx={{
-                        position: 'absolute',
-                        top: '0px',
-                        right: '0px',
-                        width: '10px',
-                        height: '10px',
-                        borderRadius: '50%',
-                        backgroundColor: 'white',
-                        border: `2px solid ${AVAILABILITY_COLORS.available.main}`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '6px',
-                        color: AVAILABILITY_COLORS.available.main,
-                        fontWeight: 'bold'
-                      }}>{AVAILABILITY_COLORS.available.icon}</Box>
-                    </Box>
-                    <Typography variant="caption">{t('exam_selection.available')}</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Box sx={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: modernBorderRadius.sm + 'px',
-                      backgroundColor: AVAILABILITY_COLORS.half.light,
-                      border: `2px solid ${AVAILABILITY_COLORS.half.main}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      position: 'relative',
-                    }}>
-                      <Box sx={{
-                        position: 'absolute',
-                        top: '0px',
-                        right: '0px',
-                        width: '10px',
-                        height: '10px',
-                        borderRadius: '50%',
-                        backgroundColor: 'white',
-                        border: `2px solid ${AVAILABILITY_COLORS.half.main}`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '6px',
-                        color: AVAILABILITY_COLORS.half.main,
-                        fontWeight: 'bold'
-                      }}>{AVAILABILITY_COLORS.half.icon}</Box>
-                    </Box>
-                    <Typography variant="caption">{t('exam_selection.half_full')}</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Box sx={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: modernBorderRadius.sm + 'px',
-                      backgroundColor: AVAILABILITY_COLORS.full.light,
-                      border: `2px solid ${AVAILABILITY_COLORS.full.main}`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      position: 'relative',
-                    }}>
-                      <Box sx={{
-                        position: 'absolute',
-                        top: '0px',
-                        right: '0px',
-                        width: '10px',
-                        height: '10px',
-                        borderRadius: '50%',
-                        backgroundColor: 'white',
-                        border: `2px solid ${AVAILABILITY_COLORS.full.main}`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '6px',
-                        color: AVAILABILITY_COLORS.full.main,
-                        fontWeight: 'bold'
-                      }}>{AVAILABILITY_COLORS.full.icon}</Box>
-                    </Box>
-                    <Typography variant="caption">{t('exam_selection.full')}</Typography>
-                  </Box>
-                </Box>
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                  {t('exam_selection.availability_explanation')}
-                </Typography>
-                </Box>
-              </Box>
-
-              {selectedDate && (
-                <Box sx={{
-                  mt: { xs: 2, sm: 2 },
-                  p: { xs: 2, sm: 2.5, md: 3 },
-                  backgroundColor: modernColors.primary[50],
-                  borderRadius: modernBorderRadius.xxs,
-                  border: `1px solid ${modernColors.primary[200]}`
-                }}>
-                  <Typography variant="body2" sx={{
-                    color: modernColors.primary[700],
-                    mb: 0.5,
-                    fontSize: { xs: '0.8rem', sm: '0.875rem' }
-                  }}>
-                    {t('exam_selection.selected_date')}:
-                  </Typography>
-                  <Typography variant="body1" sx={{
-                    fontWeight: 600,
-                    mb: 1,
-                    color: modernColors.gray[900],
-                    fontSize: { xs: '0.9rem', sm: '1rem' }
-                  }}>
-                    {formatDate(selectedDate.toDate())}
-                  </Typography>
-                  
-                  {(() => {
-                    const selectedExamDate = examDates.find(ed => {
-                      const examDateDayjs = dayjs(ed.date);
-                      return examDateDayjs.format('YYYY-MM-DD') === selectedDate.format('YYYY-MM-DD');
-                    });
-                    
-                    if (selectedExamDate) {
-                      return (
-                        <Box>
-                          {/* Only show availability info when not full */}
-                          {selectedExamDate.availability_status !== 'full' && (
-                            <>
-                              <Typography variant="body2" sx={{ color: modernColors.gray[700], mb: 1 }}>
-                                <strong>{t('exam_selection.availability')}:</strong> {selectedExamDate.booked}/{selectedExamDate.capacity}
-                                ({selectedExamDate.availability_percentage.toFixed(1)}%)
-                              </Typography>
-                              <Box sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 2,
-                                mt: 1
-                              }}>
-                                <Box sx={{
-                                  width: '120px',
-                                  height: '8px',
-                                  backgroundColor: modernColors.gray[200],
-                                  borderRadius: modernBorderRadius.sm + 'px',
-                                  overflow: 'hidden'
-                                }}>
-                                  <Box sx={{
-                                    width: `${selectedExamDate.availability_percentage}%`,
-                                    height: '100%',
-                                    backgroundColor: selectedExamDate.availability_status === 'half'
-                                      ? AVAILABILITY_COLORS.half.main
-                                      : AVAILABILITY_COLORS.available.main,
-                                    transition: 'width 0.3s ease'
-                                  }} />
-                                </Box>
-                                <Typography variant="body2" sx={{
-                                  color: selectedExamDate.availability_status === 'half'
-                                    ? AVAILABILITY_COLORS.half.main
-                                    : AVAILABILITY_COLORS.available.main,
-                                  fontWeight: 600
-                                }}>
-                                  {t(`exam_selection.${selectedExamDate.availability_status}`)}
-                                </Typography>
-                              </Box>
-                            </>
-                          )}
-
-                          {/* Warning message when date is full */}
-                          {selectedExamDate.availability_status === 'full' && (
-                            <Alert
-                              severity="error"
-                              sx={{
-                                mt: 2,
-                                borderRadius: modernBorderRadius.xxs,
-                                backgroundColor: AVAILABILITY_COLORS.full.light,
-                                color: AVAILABILITY_COLORS.full.main,
-                                '& .MuiAlert-icon': {
-                                  color: AVAILABILITY_COLORS.full.main,
-                                }
-                              }}
-                            >
-                              {t('exam_selection.date_full_warning')}
-                            </Alert>
-                          )}
-                        </Box>
-                      );
-                    }
-                    return null;
-                  })()}
-                </Box>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+        <FieldLabel htmlFor="promo">
+          {t('confirmation.promocode')}{' '}
+          <Box component="span" sx={{ fontWeight: 400, color: modernColors.gray[500] }}>
+            {t('exam_selection.promo_optional')}
+          </Box>
+        </FieldLabel>
+        <OutlinedInput
+          id="promo"
+          value={promocodeInput}
+          onChange={(e) => handlePromocodeChange(e.target.value)}
+          placeholder={t('confirmation.promocode_placeholder')}
+          error={Boolean(promocodeError)}
+          inputProps={{ style: { textTransform: 'uppercase' } }}
+          sx={{ ...(inputSx as object), minHeight: 44 }}
+          endAdornment={
+            <InputAdornment position="end">
+              {promocodeLoading && <CircularProgress size={18} />}
+              {!promocodeLoading && promocodeInput && (
+                <IconButton size="small" aria-label={t('confirmation.remove_promocode')} onClick={() => handlePromocodeChange('')}>
+                  <CloseIcon fontSize="small" />
+                </IconButton>
               )}
-            </SurfaceCard>
-            </>
-          )}
-        </Box>
-
-        {/* Price Display with Promocode */}
-        {selectedExam && (
-          <SurfaceCard surfaceVariant="elevated" sx={{ mt: 2 }}>
-            <CardContent sx={{ p: 3 }}>
-              <Box sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                gap: 2,
-                flexWrap: { xs: 'wrap', sm: 'nowrap' }
-              }}>
-                {/* 1. Title - Narxi */}
-                <Typography variant="h4" sx={{ fontSize: '18px', fontWeight: 600, flexShrink: 0 }}>
-                  {t('exam_selection.amount')}:
-                </Typography>
-
-                {/* 2. Vertical Layout: Price Display + Promocode Input */}
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, flex: 1, alignItems: 'flex-end' }}>
-                  {/* Price Display */}
-                  <Box sx={{ flexShrink: 0 }}>
-                    {promocodeData && discountAmount > 0 ? (
-                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.3 }}>
-                        <Typography variant="body2" sx={{
-                          textDecoration: 'line-through',
-                          color: 'text.secondary',
-                          fontSize: '14px',
-                          fontWeight: 400,
-                          lineHeight: 1.2
-                        }}>
-                          {originalAmount.toLocaleString()} so'm
-                        </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
-                          <Typography sx={{
-                            color: '#000000',
-                            fontWeight: 800,
-                            fontSize: { xs: '34px', sm: '38px', md: '42px' },
-                            lineHeight: 1.2
-                          }}>
-                            {Math.floor(finalAmount).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}
-                          </Typography>
-                          <Typography sx={{
-                            color: '#000000',
-                            fontWeight: 400,
-                            fontSize: { xs: '14px', sm: '15px', md: '16px' },
-                            lineHeight: 1.2
-                          }}>
-                            so'm
-                          </Typography>
-                        </Box>
-                        <Typography variant="caption" sx={{
-                          color: 'success.main',
-                          fontWeight: 600,
-                          fontSize: '12px',
-                          lineHeight: 1.2
-                        }}>
-                          -{discountAmount.toLocaleString()} so'm ({promocodeData.discount_type === 'percent' ? `${promocodeData.discount_value}%` : ''})
-                        </Typography>
-                      </Box>
-                    ) : (
-                      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
-                        <Typography sx={{
-                          color: '#000000',
-                          fontWeight: 800,
-                          fontSize: { xs: '34px', sm: '38px', md: '42px' },
-                          lineHeight: 1.2
-                        }}>
-                          {Math.floor(parseFloat(selectedExam.amount)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')}
-                        </Typography>
-                        <Typography sx={{
-                          color: '#000000',
-                          fontWeight: 400,
-                          fontSize: { xs: '14px', sm: '15px', md: '16px' },
-                          lineHeight: 1.2
-                        }}>
-                          so'm
-                        </Typography>
-                      </Box>
-                    )}
-                  </Box>
-
-                  {/* Promocode Input - Flat */}
-                  <Box sx={{ width: { xs: '100%', sm: '180px' }, maxWidth: '200px' }}>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      variant="standard"
-                      placeholder={t('confirmation.promocode_placeholder')}
-                      value={promocodeInput}
-                      onChange={(e) => handlePromocodeChange(e.target.value)}
-                      disabled={promocodeLoading}
-                      error={!!promocodeError}
-                      helperText={
-                        promocodeLoading
-                          ? t('confirmation.promocode_checking')
-                          : promocodeError
-                          ? promocodeError
-                          : promocodeSuccess && promocodeData
-                          ? `✓ ${t('confirmation.promocode_applied')}: ${promocodeData.code}`
-                          : ''
-                      }
-                      InputProps={{
-                        startAdornment: promocodeLoading && (
-                          <InputAdornment position="start">
-                            <CircularProgress size={16} />
-                          </InputAdornment>
-                        ),
-                        endAdornment: promocodeInput && (
-                          <InputAdornment position="end">
-                            <IconButton
-                              size="small"
-                              onClick={handleRemovePromocode}
-                              edge="end"
-                              sx={{ padding: '4px' }}
-                            >
-                              <CloseIcon fontSize="small" />
-                            </IconButton>
-                          </InputAdornment>
-                        ),
-                      }}
-                      sx={{
-                        '& .MuiInput-root': {
-                          fontSize: '14px',
-                          paddingRight: promocodeInput ? '0px' : '0px',
-                        },
-                        '& .MuiInput-input': {
-                          paddingRight: '0px',
-                        },
-                        '& .MuiInput-root:before': {
-                          borderBottomColor: 'divider',
-                        },
-                        '& .MuiFormHelperText-root': {
-                          color: promocodeSuccess ? 'success.main' : promocodeError ? 'error.main' : 'text.secondary',
-                          fontWeight: promocodeSuccess ? 500 : 400,
-                          fontSize: '11px',
-                        }
-                      }}
-                    />
-                  </Box>
-                </Box>
-              </Box>
-            </CardContent>
-          </SurfaceCard>
+            </InputAdornment>
+          }
+        />
+        {promocodeError && <FieldHint error>{promocodeError}</FieldHint>}
+        {promocodeData && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: '12px', fontWeight: 600, color: statusColors.success.text }}>
+            <CheckIcon sx={{ fontSize: 16 }} />
+            {t('confirmation.promocode_applied')}
+          </Box>
         )}
       </Box>
 
-      {/* Navigation Button */}
-      <Box sx={{
-        display: 'flex',
-        justifyContent: 'flex-end',
-        mt: { xs: 4, sm: 6, md: 8 }
-      }}>
-        <FilledButton
-          type="submit"
-          disabled={
-            !formik.values.examName ||
-            !formik.values.region ||
-            !formik.values.exam ||
-            !formik.values.examDate ||
-            !formik.isValid ||
-            (() => {
-              // Check if selected date is full
-              const selectedExamDate = examDates.find(ed => ed.id === Number(formik.values.examDate));
-              return selectedExamDate?.availability_status === 'full';
-            })()
-          }
-          sx={{
-            width: { xs: '100%', sm: 'auto' },
-            borderRadius: modernBorderRadius.xs,
-          }}
-        >
-          {t('common.next')}
-        </FilledButton>
+      {isMobile && selectedExam && selectedDate && (
+        <Box sx={{ fontSize: '13px', color: modernColors.gray[600] }}>
+          {selectedExam.name} · {dayMonth(selectedDate.date, i18n.language)}
+        </Box>
+      )}
+
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'baseline', gap: 1 }}>
+        <Typography component="span" sx={{ fontSize: '14px', color: modernColors.gray[600] }}>
+          {t('exam_selection.total')}
+        </Typography>
+        <Box sx={{ textAlign: 'right' }}>
+          {final < original && (
+            <Box sx={{ fontSize: '13px', color: modernColors.gray[500], textDecoration: 'line-through' }}>
+              {formatMoney(original)} {currency}
+            </Box>
+          )}
+          <Typography component="span" sx={{ fontSize: '20px', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+            {selectedExam ? `${formatMoney(final)} ${currency}` : '—'}
+          </Typography>
+        </Box>
       </Box>
-    </Box>
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+        <PrimaryButton fullWidth disabled={!canContinue} onClick={() => formik.submitForm()}>
+          {t('common.continue')} →
+        </PrimaryButton>
+        {!canContinue && (
+          <Typography sx={{ m: 0, fontSize: '13px', color: modernColors.gray[600], textAlign: 'center' }}>
+            {t('exam_selection.choose_date_hint')}
+          </Typography>
+        )}
+      </Box>
+      {!isMobile && (
+        <Typography sx={{ m: 0, fontSize: '12px', lineHeight: 1.5, color: modernColors.gray[500] }}>
+          {t('exam_selection.saved_note')}
+        </Typography>
+      )}
+    </AsideCard>
+  );
+
+  return (
+    <StepLayout aside={aside}>
+      {error && (
+        <Box role="alert" sx={{ p: '12px 14px', borderRadius: '10px', backgroundColor: statusColors.error.bg, color: statusColors.error.text, fontSize: '14px' }}>
+          {error}
+        </Box>
+      )}
+
+      <SectionCard>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+          <CardTitle>{isMobile ? t('exam_selection.pick_exam_short') : t('exam_selection.pick_exam_title')}</CardTitle>
+          {!isMobile && (
+            <Typography sx={{ m: 0, fontSize: '14px', color: modernColors.gray[600] }}>
+              {t('exam_selection.pick_exam_sub')}
+            </Typography>
+          )}
+        </Box>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' }, gap: { xs: 1.25, sm: 1.5 } }}>
+          {examNames.map((item) => {
+            const selected = item.id === Number(examName);
+            return (
+              <Button
+                key={item.id}
+                onClick={() => pickExamName(item.id)}
+                aria-pressed={selected}
+                sx={{
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  gap: 1.5,
+                  minHeight: { xs: 56, sm: 76 },
+                  px: 2.25,
+                  py: 1.75,
+                  borderRadius: '12px',
+                  fontFamily: 'inherit',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  color: modernColors.gray[900],
+                  border: selected ? `2px solid ${modernColors.primary[600]}` : `1px solid ${modernColors.gray[300]}`,
+                  backgroundColor: selected ? modernColors.primary[50] : '#FFFFFF',
+                  '&:hover': { backgroundColor: modernColors.primary[50] },
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    width: 20,
+                    height: 20,
+                    flex: '0 0 20px',
+                    boxSizing: 'border-box',
+                    borderRadius: '10px',
+                    border: selected ? 0 : `2px solid ${modernColors.gray[400]}`,
+                    backgroundColor: selected ? modernColors.primary[600] : 'transparent',
+                    color: '#FFFFFF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {selected && <CheckIcon sx={{ fontSize: 14 }} />}
+                </Box>
+                {item.name}
+              </Button>
+            );
+          })}
+        </Box>
+      </SectionCard>
+
+      <SectionCard>
+        <CardTitle>{isMobile ? t('exam_selection.place_short') : t('exam_selection.place_title')}</CardTitle>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' }, gap: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, minWidth: 0 }}>
+            <FieldLabel htmlFor="region">{t('exam_selection.region')}</FieldLabel>
+            <Select
+              id="region"
+              name="region"
+              displayEmpty
+              value={region}
+              onChange={formik.handleChange}
+              inputProps={{ 'aria-label': t('exam_selection.region') }}
+              sx={inputSx}
+            >
+              <MenuItem value="" disabled>{t('exam_selection.region_placeholder')}</MenuItem>
+              {regions.map((item) => (
+                <MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>
+              ))}
+            </Select>
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, minWidth: 0 }}>
+            <FieldLabel htmlFor="exam">{t('exam_selection.exam')}</FieldLabel>
+            <Select
+              id="exam"
+              name="exam"
+              displayEmpty
+              value={exams.some((e) => e.id === Number(exam)) ? exam : ''}
+              onChange={formik.handleChange}
+              disabled={!examName}
+              inputProps={{ 'aria-label': t('exam_selection.exam') }}
+              sx={inputSx}
+            >
+              <MenuItem value="" disabled>{t('exam_selection.exam_placeholder')}</MenuItem>
+              {exams.map((item) => (
+                <MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>
+              ))}
+            </Select>
+          </Box>
+        </Box>
+      </SectionCard>
+
+      <ExamCalendar
+        examDates={examDates}
+        selectedId={examDate ? Number(examDate) : undefined}
+        ready={Boolean(exam && region)}
+        loading={datesLoading}
+        month={month}
+        onMonthChange={setMonth}
+        onSelect={(picked) => formik.setFieldValue('examDate', picked.id)}
+      />
+    </StepLayout>
   );
 };
 

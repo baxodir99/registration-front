@@ -1,132 +1,72 @@
 import React from 'react';
-import { Box, Divider, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { PaymentResponse } from '../../types';
-import { modernColors, modernBorderRadius } from '../../theme/modernTheme';
+import { formatMoney } from '../../utils/price';
+import { modernColors, statusColors } from '../../theme/modernTheme';
+import { AsideCard, Divider, SummaryRow, SupportLine, TotalRow } from '../ui';
 
-interface InvoiceSummaryProps {
+export interface PaymentDetails {
+  examLabel?: string;
+  dateLabel?: string;
+  participant?: string;
+  deadline?: string;
+}
+
+interface InvoiceSummaryProps extends PaymentDetails {
   paymentData: PaymentResponse;
   originalAmount?: number;
   hasDiscount: boolean;
-  paid?: boolean;
+  compact?: boolean;
+  support?: boolean;
 }
 
 const InvoiceSummary: React.FC<InvoiceSummaryProps> = ({
   paymentData,
   originalAmount,
   hasDiscount,
-  paid,
+  examLabel,
+  dateLabel,
+  participant,
+  deadline,
+  compact,
+  support,
 }) => {
   const { t } = useTranslation();
+  const currency = t('payment.currency');
+
   return (
-    <Box
-      sx={{
-        borderRadius: modernBorderRadius.xs,
-        border: `1px solid ${modernColors.gray[200]}`,
-        backgroundColor: modernColors.surface.secondary,
-        p: { xs: 2, sm: 2.5 },
-      }}
-    >
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 1.5,
-        }}
-      >
-        <Typography
-          sx={{
-            fontSize: 12,
-            fontWeight: 500,
-            textTransform: 'uppercase',
-            letterSpacing: 0.5,
-            color: modernColors.gray[500],
-          }}
-        >
+    <AsideCard>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.375 }}>
+        <Typography component="span" sx={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', color: modernColors.gray[500] }}>
           {t('payment.card.invoice_label')}
         </Typography>
-        {paid && (
-          <Box
-            sx={{
-              px: 1.25,
-              py: 0.25,
-              borderRadius: 999,
-              fontSize: 11,
-              fontWeight: 600,
-              backgroundColor: '#DCFCE7',
-              color: '#15803D',
-              letterSpacing: 0.3,
-            }}
-          >
-            ✓ {t('payment.card.paid_badge')}
-          </Box>
-        )}
-      </Box>
-      <Typography
-        sx={{
-          fontSize: { xs: 18, sm: 20 },
-          fontWeight: 700,
-          color: modernColors.gray[900],
-          mb: 2,
-          fontFamily: '"Roboto Mono", ui-monospace, monospace',
-        }}
-      >
-        {paymentData.invoice}
-      </Typography>
-      <Divider sx={{ mb: 2 }} />
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-end',
-        }}
-      >
-        <Typography
-          sx={{
-            fontSize: 13,
-            fontWeight: 500,
-            color: modernColors.gray[600],
-          }}
-        >
-          {t('payment.card.total_label')}
+        <Typography component="span" sx={{ fontSize: '18px', fontWeight: 700, letterSpacing: '0.04em', overflowWrap: 'anywhere' }}>
+          {paymentData.invoice}
         </Typography>
-        {hasDiscount && originalAmount ? (
-          <Box sx={{ textAlign: 'right' }}>
-            <Typography
-              sx={{
-                fontSize: 13,
-                textDecoration: 'line-through',
-                color: modernColors.gray[400],
-              }}
-            >
-              {originalAmount.toLocaleString()} {t('payment.currency')}
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: { xs: 22, sm: 26 },
-                fontWeight: 700,
-                color: modernColors.semantic.success,
-                lineHeight: 1.2,
-              }}
-            >
-              {paymentData.amount.toLocaleString()} {t('payment.currency')}
-            </Typography>
-          </Box>
-        ) : (
-          <Typography
-            sx={{
-              fontSize: { xs: 22, sm: 26 },
-              fontWeight: 700,
-              color: modernColors.primary[700],
-              lineHeight: 1.2,
-            }}
-          >
-            {paymentData.amount.toLocaleString()} {t('payment.currency')}
-          </Typography>
-        )}
       </Box>
-    </Box>
+      {!compact && (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+          {examLabel && <SummaryRow strong label={t('payment.summary_exam')} value={examLabel} />}
+          {dateLabel && <SummaryRow label={t('payment.summary_date')} value={dateLabel} />}
+          {participant && <SummaryRow label={t('payment.summary_participant')} value={participant} />}
+        </Box>
+      )}
+      <Divider />
+      {hasDiscount && originalAmount !== undefined && (
+        <SummaryRow
+          label={t('confirmation.original_amount')}
+          value={<Box component="span" sx={{ color: modernColors.gray[600], textDecoration: 'line-through' }}>{formatMoney(originalAmount)} {currency}</Box>}
+        />
+      )}
+      <TotalRow label={t('payment.card.total_label')} value={`${formatMoney(paymentData.amount)} ${currency}`} />
+      {deadline && (
+        <Box sx={{ p: 1.5, borderRadius: '10px', backgroundColor: statusColors.warning.bg, fontSize: '13px', lineHeight: 1.5, color: '#5C3B08' }}>
+          {t('payment.deadline_before')} <strong>{deadline}</strong> {t('payment.deadline_after')}
+        </Box>
+      )}
+      {support && <SupportLine />}
+    </AsideCard>
   );
 };
 

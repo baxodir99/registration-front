@@ -6,22 +6,22 @@ import { modernColors } from '../../theme/modernTheme';
 const DigitBox = styled('input', {
   shouldForwardProp: (prop) => prop !== 'hasError' && prop !== 'filled',
 })<{ hasError?: boolean; filled?: boolean }>(({ theme, hasError, filled }) => ({
-  width: 48,
-  height: 56,
+  width: 52,
+  height: 60,
   textAlign: 'center',
   fontSize: 24,
   fontWeight: 600,
   fontFamily: 'inherit',
   color: modernColors.gray[900],
-  backgroundColor: filled ? modernColors.primary[50] : '#FFFFFF',
-  border: `1.5px solid ${
+  backgroundColor: '#FFFFFF',
+  border: `1px solid ${
     hasError
       ? theme.palette.error.main
       : filled
-      ? modernColors.primary[400]
+      ? modernColors.primary[600]
       : modernColors.gray[300]
   }`,
-  borderRadius: 10,
+  borderRadius: 12,
   outline: 'none',
   transition: 'all 0.15s ease',
   caretColor: theme.palette.primary.main,
@@ -31,9 +31,6 @@ const DigitBox = styled('input', {
   '&:focus': {
     borderColor: hasError ? theme.palette.error.main : theme.palette.primary.main,
     borderWidth: 2,
-    boxShadow: `0 0 0 4px ${
-      hasError ? 'rgba(220, 38, 38, 0.12)' : modernColors.primary[100]
-    }`,
   },
   '&:disabled': {
     backgroundColor: modernColors.gray[100],
@@ -41,7 +38,8 @@ const DigitBox = styled('input', {
     cursor: 'not-allowed',
   },
   [theme.breakpoints.down('sm')]: {
-    width: 42,
+    width: 'calc((100vw - 104px) / 6)',
+    maxWidth: 46,
     height: 52,
     fontSize: 22,
   },

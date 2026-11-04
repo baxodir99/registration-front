@@ -1,41 +1,58 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Typography,
-  Alert,
-  CircularProgress,
-  TextField,
-} from '@mui/material';
-import { FilledTextField, FilledButton, OutlinedButton, SurfaceCard } from './MD3Components';
-import { LoadingButton } from '@mui/lab';
-import { useTranslation } from 'react-i18next';
+import { Box, Button, CircularProgress, InputAdornment, OutlinedInput, Typography } from '@mui/material';
+import { Check as CheckIcon, Person as PersonIcon, VerifiedUser as VerifiedIcon } from '@mui/icons-material';
 import { useFormik } from 'formik';
+import { useTranslation } from 'react-i18next';
 import { apiService } from '../services/api';
-import { contactSchema, personalizationSchema } from '../utils/validation';
-import { formatPNFL, formatPassport, formatPhone, formatDate, formatDateRange } from '../utils/validation';
+import {
+  contactSchema,
+  formatDate,
+  formatDateRange,
+  formatPassport,
+  formatPNFL,
+  personalizationSchema,
+} from '../utils/validation';
+import { modernColors, statusColors } from '../theme/modernTheme';
 import { FormData, UserProfile } from '../types';
-import { modernBorderRadius } from '../theme/modernTheme';
+import {
+  CardTitle,
+  FieldHint,
+  FieldLabel,
+  inputSx,
+  NavRow,
+  Notice,
+  PageTitle,
+  PrimaryButton,
+  SecondaryButton,
+  SectionCard,
+  StepLayout,
+} from './ui';
 
 interface PersonalizationStepProps {
   initialData?: Partial<FormData>;
   onNext: (data: Partial<FormData>) => void;
   onPrevious: () => void;
   onDataChange: (data: Partial<FormData>) => void;
+  aside: React.ReactNode;
 }
+
+const PHONE_PREFIX = '+998';
+
+/** 901234567 -> "90 123 45 67" */
+const groupPhone = (digits: string) =>
+  [digits.slice(0, 2), digits.slice(2, 5), digits.slice(5, 7), digits.slice(7, 9)].filter(Boolean).join(' ');
 
 const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
   initialData,
   onNext,
   onPrevious,
   onDataChange,
+  aside,
 }) => {
   const { t } = useTranslation();
-  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(
-    initialData?.userProfile || null
-  );
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(initialData?.userProfile || null);
 
   const formik = useFormik({
     initialValues: {
@@ -43,9 +60,8 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
       passport: initialData?.passport || '',
     },
     validationSchema: personalizationSchema,
-    onSubmit: async (values) => {
-      await checkPersonalization(values);
-    },
+    validateOnMount: true,
+    onSubmit: (values) => checkPersonalization(values),
   });
 
   const contact = useFormik({
@@ -58,7 +74,6 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
     onSubmit: () => undefined,
   });
 
-  // Update parent data when form changes
   React.useEffect(() => {
     onDataChange({
       pnfl: formik.values.pnfl || undefined,
@@ -74,325 +89,274 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
     try {
       setLoading(true);
       setError(null);
-
-      const response = await apiService.checkPersonalization({
-        pnfl: values.pnfl,
-        passport: values.passport,
-      });
-
+      const response = await apiService.checkPersonalization(values);
       if (response.status === 1 || response.status === 2) {
-        // Success - personalization verified
         setUserProfile(response.data!);
-        
-        // Store the form data but don't auto-proceed
-        // User needs to review their information and click continue
-        const formData: Partial<FormData> = {
-          pnfl: values.pnfl,
-          passport: values.passport,
-          userProfile: response.data!,
-        };
-        onDataChange(formData);
       } else {
-        // Failed - personalization not verified
-        setError(t('messages.personalization_failed'));
+        setError(t('personalization.failed'));
         setUserProfile(null);
       }
-    } catch (error: any) {
-      console.error('Personalization check error:', error);
-      
-      if (error.response?.data?.message) {
-        setError(error.response.data.message);
-      } else {
-        setError(t('messages.personalization_failed'));
-      }
+    } catch (err: any) {
+      const data = err.response?.data;
+      const remaining = data?.remaining_today;
+      const message = err.response?.status === 429 ? data?.message : t('personalization.failed');
+      setError(
+        remaining === undefined || err.response?.status === 429
+          ? message || t('personalization.failed')
+          : `${message} ${t('personalization.remaining_today', { count: remaining })}`
+      );
       setUserProfile(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePNFLChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value || '';
-    const formatted = formatPNFL(value);
-    if (formatted.length <= 14) {
-      formik.setFieldValue('pnfl', formatted);
-    }
-  };
-
-  const handlePassportChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value || '';
-    const formatted = formatPassport(value);
-    if (formatted.length <= 9) {
-      formik.setFieldValue('passport', formatted);
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    formik.handleSubmit();
+  // Tekshirilgandan keyin raqam o'zgarsa, profil boshqa odamniki bo'lib qolmasin
+  const changeIdentity = (field: 'pnfl' | 'passport', value: string) => {
+    formik.setFieldValue(field, value);
+    setUserProfile(null);
+    setError(null);
   };
 
   const handleNext = () => {
     if (userProfile) {
-      const formData: Partial<FormData> = {
+      onNext({
         pnfl: formik.values.pnfl,
         passport: formik.values.passport,
-        userProfile: userProfile,
+        userProfile,
         phone: contact.values.phone,
         email: contact.values.email,
-      };
-      onNext(formData);
+      });
     }
   };
 
+  const phoneDigits = contact.values.phone.replace(PHONE_PREFIX, '').replace(/\D/g, '');
+  const identityInput = { ...(inputSx as object), '& input': { letterSpacing: '0.06em' } };
+  const profileRows = userProfile
+    ? [
+        { label: t('user_info.birth_date'), value: formatDate(userProfile.birth_date) },
+        { label: t('user_info.birth_place'), value: userProfile.birth_place },
+        { label: t('user_info.sex'), value: userProfile.sex === '1' ? t('user_info.male') : t('user_info.female') },
+        { label: t('user_info.nationality'), value: userProfile.nationality },
+        { label: t('user_info.passport_number'), value: userProfile.passport },
+        {
+          label: t('user_info.doc_valid_period'),
+          value: formatDateRange(userProfile.matches_date_begin_document, userProfile.matches_date_end_document),
+        },
+      ]
+    : [];
+
   return (
-    <Box>
-      <Typography variant="h2" gutterBottom sx={{
-        fontSize: { xs: '20px', sm: '24px', md: '28px' },
-        fontWeight: 600,
-        mb: { xs: 2, sm: 3, md: 4 },
-        color: 'text.primary'
-      }}>
-        {t('personalization.title')}
-      </Typography>
+    <StepLayout aside={aside}>
+      <SectionCard sx={{ gap: 2.5 }}>
+        <PageTitle title={t('personalization.title')} subtitle={t('personalization.subtitle')} />
 
-      {error && (
-        <Alert severity="error" sx={{ mb: { xs: 2, sm: 3, md: 4 }, borderRadius: modernBorderRadius.xs }}>
-          {error}
-        </Alert>
-      )}
-
-      {userProfile && (
-        <Alert severity="success" sx={{ mb: { xs: 2, sm: 3, md: 4 }, borderRadius: modernBorderRadius.xs }}>
-          {t('messages.personalization_success')}
-        </Alert>
-      )}
-
-      <Box component="form" onSubmit={handleSubmit} sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3, md: 4 } }}>
-          {/* PNFL Field */}
-          <FilledTextField
-            fullWidth
-            name="pnfl"
-            label={t('personalization.pnfl')}
-            placeholder={t('personalization.pnfl_placeholder')}
-            value={formik.values.pnfl}
-            onChange={handlePNFLChange}
-            onBlur={formik.handleBlur}
-            error={formik.touched.pnfl && Boolean(formik.errors.pnfl)}
-            helperText={formik.touched.pnfl && t(formik.errors.pnfl as string)}
-            inputProps={{
-              maxLength: 14,
-              inputMode: 'numeric',
-              pattern: '[0-9]*',
-            }}
-            disabled={loading}
-          />
-
-          {/* Passport Field */}
-          <FilledTextField
-            fullWidth
-            name="passport"
-            label={t('personalization.passport')}
-            placeholder={t('personalization.passport_placeholder')}
-            value={formik.values.passport}
-            onChange={handlePassportChange}
-            onBlur={formik.handleBlur}
-            error={formik.touched.passport && Boolean(formik.errors.passport)}
-            helperText={formik.touched.passport && t(formik.errors.passport as string)}
-            inputProps={{
-              maxLength: 9,
-              style: { textTransform: 'uppercase' },
-            }}
-            disabled={loading}
-          />
-
-          {/* Check Button */}
-          <LoadingButton
+        <Box
+          component="form"
+          onSubmit={(e: React.FormEvent) => {
+            e.preventDefault();
+            formik.handleSubmit();
+          }}
+          sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'flex-start' }}
+        >
+          <Box sx={{ flex: '1 1 240px', display: 'flex', flexDirection: 'column', gap: 0.75, minWidth: 0 }}>
+            <FieldLabel htmlFor="pnfl">{t('personalization.pnfl_label')}</FieldLabel>
+            <OutlinedInput
+              id="pnfl"
+              name="pnfl"
+              value={formik.values.pnfl}
+              onChange={(e) => changeIdentity('pnfl', formatPNFL(e.target.value).slice(0, 14))}
+              onBlur={formik.handleBlur}
+              error={formik.touched.pnfl && Boolean(formik.errors.pnfl)}
+              disabled={loading}
+              inputProps={{ maxLength: 14, inputMode: 'numeric' }}
+              sx={identityInput}
+            />
+            <FieldHint error={formik.touched.pnfl && Boolean(formik.errors.pnfl)}>
+              {formik.touched.pnfl && formik.errors.pnfl ? t(formik.errors.pnfl) : t('personalization.pnfl_help')}
+            </FieldHint>
+          </Box>
+          <Box sx={{ flex: '1 1 200px', display: 'flex', flexDirection: 'column', gap: 0.75, minWidth: 0 }}>
+            <FieldLabel htmlFor="passport">{t('personalization.passport')}</FieldLabel>
+            <OutlinedInput
+              id="passport"
+              name="passport"
+              value={formik.values.passport}
+              onChange={(e) => changeIdentity('passport', formatPassport(e.target.value).slice(0, 9))}
+              onBlur={formik.handleBlur}
+              error={formik.touched.passport && Boolean(formik.errors.passport)}
+              disabled={loading}
+              inputProps={{ maxLength: 9, style: { textTransform: 'uppercase' } }}
+              sx={identityInput}
+            />
+            <FieldHint error={formik.touched.passport && Boolean(formik.errors.passport)}>
+              {formik.touched.passport && formik.errors.passport
+                ? t(formik.errors.passport)
+                : t('personalization.passport_placeholder')}
+            </FieldHint>
+          </Box>
+          <Button
             type="submit"
-            variant="contained"
-            loading={loading}
-            disabled={!formik.isValid || !formik.values.pnfl || !formik.values.passport}
-            size="large"
-            loadingIndicator={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <CircularProgress size={20} />
-                <span>{t('common.loading')}</span>
-              </Box>
-            }
+            variant="outlined"
+            disabled={loading || !formik.isValid || Boolean(userProfile)}
+            startIcon={loading ? <CircularProgress size={18} /> : userProfile ? <CheckIcon /> : undefined}
             sx={{
-              borderRadius: modernBorderRadius.xs,
+              mt: { xs: 0, sm: '27px' },
+              width: { xs: '100%', sm: 'auto' },
+              minHeight: 48,
+              px: 2.75,
+              borderRadius: '10px',
+              fontSize: '15px',
+              fontWeight: 600,
+              '&.Mui-disabled': userProfile
+                ? { color: modernColors.primary[600], borderColor: modernColors.primary[600] }
+                : {},
             }}
           >
-            {t('personalization.check')}
-          </LoadingButton>
+            {userProfile ? t('personalization.checked') : t('personalization.check')}
+          </Button>
         </Box>
-      </Box>
 
-      {/* User Profile Display */}
-      {userProfile && (
-        <SurfaceCard surfaceVariant="elevated" sx={{
-          p: { xs: 3, sm: 4, md: 6 },
-          mb: { xs: 3, sm: 4, md: 6 }
-        }}>
-          <Typography variant="h4" gutterBottom sx={{
-            fontSize: { xs: '16px', sm: '18px', md: '20px' },
-            fontWeight: 600,
-            mb: { xs: 2, sm: 3, md: 4 }
-          }}>
-            {t('user_info.title')}
-          </Typography>
-
-          <Box sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-            gap: { xs: 2, sm: 3, md: 4 },
-            rowGap: { xs: 2, sm: 3, md: 4 }
-          }}>
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                {t('user_info.full_name')}
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                {userProfile.full_name}
-              </Typography>
-            </Box>
-
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                {t('user_info.passport_number')}
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                {userProfile.passport}
-              </Typography>
-            </Box>
-
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                {t('user_info.birth_date')}
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                {formatDate(userProfile.birth_date)}
-              </Typography>
-            </Box>
-
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                {t('user_info.birth_place')}
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                {userProfile.birth_place}
-              </Typography>
-            </Box>
-
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                {t('user_info.nationality')}
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                {userProfile.nationality}
-              </Typography>
-            </Box>
-
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                {t('user_info.sex')}
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                {userProfile.sex === '1' ? 'Erkak' : 'Ayol'}
-              </Typography>
-            </Box>
-
-            <Box sx={{ gridColumn: { xs: '1', md: '1 / -1' } }}>
-              <Typography variant="body2" color="text.secondary">
-                {t('user_info.doc_give_place')}
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                {userProfile.doc_give_place}
-              </Typography>
-            </Box>
-
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                {t('user_info.doc_valid_period')}
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                {formatDateRange(userProfile.matches_date_begin_document, userProfile.matches_date_end_document)}
-              </Typography>
-            </Box>
-          </Box>
-        </SurfaceCard>
-      )}
-
-      {/* Contact Details */}
-      {userProfile && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 3, md: 4 } }}>
-          <TextField
-            fullWidth
-            name="phone"
-            label={t('registration_details.phone')}
-            placeholder={t('registration_details.phone_placeholder')}
-            value={contact.values.phone}
-            onChange={(e) => contact.setFieldValue('phone', formatPhone(e.target.value || ''))}
-            onBlur={contact.handleBlur}
-            error={contact.touched.phone && Boolean(contact.errors.phone)}
-            helperText={contact.touched.phone && contact.errors.phone && t(contact.errors.phone)}
-            inputProps={{ inputMode: 'tel' }}
-          />
-          <TextField
-            fullWidth
-            name="email"
-            type="email"
-            label={t('registration_details.email')}
-            placeholder={t('registration_details.email_placeholder')}
-            value={contact.values.email}
-            onChange={contact.handleChange}
-            onBlur={contact.handleBlur}
-            error={contact.touched.email && Boolean(contact.errors.email)}
-            helperText={contact.touched.email && contact.errors.email && t(contact.errors.email)}
-          />
-        </Box>
-      )}
-
-      {/* Navigation Buttons */}
-      <Box sx={{
-        display: 'flex',
-        flexDirection: { xs: 'column', sm: 'row' },
-        justifyContent: 'space-between',
-        mt: { xs: 4, sm: 6, md: 8 },
-        gap: { xs: 2, sm: 3, md: 4 }
-      }}>
-        <OutlinedButton
-          onClick={onPrevious}
-          disabled={loading}
-          sx={{
-            width: { xs: '100%', sm: 'auto' },
-            borderRadius: modernBorderRadius.xs,
-          }}
-        >
-          {t('common.previous')}
-        </OutlinedButton>
+        {error && <Notice kind="error">{error}</Notice>}
 
         {userProfile && (
-          <FilledButton
-            onClick={handleNext}
-            disabled={loading || !contact.isValid}
-            sx={{
-              width: { xs: '100%', sm: 'auto' },
-              borderRadius: modernBorderRadius.xs,
-              animation: 'pulse 2s infinite',
-              '@keyframes pulse': {
-                '0%': { transform: 'scale(1)' },
-                '50%': { transform: 'scale(1.05)' },
-                '100%': { transform: 'scale(1)' },
-              }
-            }}
-          >
-            {t('common.continue')}
-          </FilledButton>
+          <>
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 2.5,
+                p: 2.5,
+                borderRadius: '14px',
+                backgroundColor: '#F6FAF8',
+                border: `1px solid ${statusColors.success.border}`,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 96,
+                  height: 120,
+                  borderRadius: '10px',
+                  backgroundColor: '#CFE7DD',
+                  color: statusColors.success.text,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                }}
+              >
+                {userProfile.photo ? (
+                  <img
+                    src={userProfile.photo.startsWith('data:') ? userProfile.photo : `data:image/jpeg;base64,${userProfile.photo}`}
+                    alt=""
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <PersonIcon sx={{ fontSize: 44 }} />
+                )}
+              </Box>
+              <Box sx={{ flex: '1 1 400px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1.75 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, fontSize: '13px', fontWeight: 600, color: statusColors.success.text }}>
+                    <VerifiedIcon sx={{ fontSize: 16 }} />
+                    {t('personalization.confirmed')}
+                  </Box>
+                  <Typography sx={{ fontSize: '20px', fontWeight: 700 }}>{userProfile.full_name}</Typography>
+                </Box>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', md: 'repeat(3, minmax(0, 1fr))' }, gap: '14px 20px' }}>
+                  {profileRows.map((row) => (
+                    <Box key={row.label} sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, minWidth: 0 }}>
+                      <Box component="span" sx={{ fontSize: '12px', color: modernColors.gray[700] }}>{row.label}</Box>
+                      <Box component="span" sx={{ fontSize: '15px', fontWeight: 500, overflowWrap: 'anywhere' }}>{row.value}</Box>
+                    </Box>
+                  ))}
+                  <Box sx={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                    <Box component="span" sx={{ fontSize: '12px', color: modernColors.gray[700] }}>{t('user_info.doc_give_place')}</Box>
+                    <Box component="span" sx={{ fontSize: '15px', fontWeight: 500 }}>{userProfile.doc_give_place}</Box>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+            <Typography sx={{ m: 0, fontSize: '13px', color: modernColors.gray[600] }}>
+              {t('personalization.wrong_data_hint')}
+            </Typography>
+          </>
         )}
-      </Box>
-    </Box>
+      </SectionCard>
+
+      {userProfile && (
+        <SectionCard>
+          <CardTitle>{t('personalization.contact_title')}</CardTitle>
+          <Notice kind="info">
+            <strong>{t('personalization.contact_notice_bold')}</strong> {t('personalization.contact_notice')}
+          </Notice>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' }, gap: 2 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, minWidth: 0 }}>
+              <FieldLabel htmlFor="phone">{t('registration_details.phone')}</FieldLabel>
+              <OutlinedInput
+                id="phone"
+                name="phone"
+                value={groupPhone(phoneDigits)}
+                onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, '').slice(0, 9);
+                  contact.setFieldValue('phone', digits ? `${PHONE_PREFIX}${digits}` : '');
+                }}
+                onBlur={contact.handleBlur}
+                error={contact.touched.phone && Boolean(contact.errors.phone)}
+                placeholder="90 123 45 67"
+                inputProps={{ inputMode: 'tel' }}
+                sx={{ ...(inputSx as object), pl: 0, overflow: 'hidden' }}
+                startAdornment={
+                  <InputAdornment
+                    position="start"
+                    sx={{
+                      m: 0,
+                      mr: 1.5,
+                      height: 'auto',
+                      alignSelf: 'stretch',
+                      maxHeight: 'none',
+                      px: 1.5,
+                      backgroundColor: modernColors.gray[50],
+                      borderRight: `1px solid ${modernColors.gray[300]}`,
+                      '& p': { fontSize: '15px', color: modernColors.gray[700] },
+                    }}
+                  >
+                    {PHONE_PREFIX}
+                  </InputAdornment>
+                }
+              />
+              <FieldHint error={contact.touched.phone && Boolean(contact.errors.phone)}>
+                {contact.touched.phone && contact.errors.phone ? t(contact.errors.phone) : t('personalization.phone_help')}
+              </FieldHint>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, minWidth: 0 }}>
+              <FieldLabel htmlFor="email">{t('registration_details.email')}</FieldLabel>
+              <OutlinedInput
+                id="email"
+                name="email"
+                type="email"
+                value={contact.values.email}
+                onChange={contact.handleChange}
+                onBlur={contact.handleBlur}
+                error={contact.touched.email && Boolean(contact.errors.email)}
+                placeholder={t('registration_details.email_placeholder')}
+                sx={inputSx}
+              />
+              <FieldHint error={contact.touched.email && Boolean(contact.errors.email)}>
+                {contact.touched.email && contact.errors.email ? t(contact.errors.email) : t('personalization.email_help')}
+              </FieldHint>
+            </Box>
+          </Box>
+        </SectionCard>
+      )}
+
+      <NavRow>
+        <SecondaryButton onClick={onPrevious} disabled={loading}>← {t('common.previous')}</SecondaryButton>
+        <PrimaryButton onClick={handleNext} disabled={loading || !userProfile || !contact.isValid}>
+          {t('common.continue')} →
+        </PrimaryButton>
+      </NavRow>
+    </StepLayout>
   );
 };
 
