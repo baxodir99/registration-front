@@ -1,6 +1,6 @@
 import React from 'react';
-import { Box, Container } from '@mui/material';
-import { modernColors, modernBorderRadius } from '../../theme/modernTheme';
+import { Box } from '@mui/material';
+import { modernColors } from '../../theme/modernTheme';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -8,16 +8,23 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
-    <Box
-      sx={{
-        backgroundColor: modernColors.surface.body,
-        minHeight: '100vh',
-        pb: { xs: 4, sm: 6, md: 8 },
-      }}
-    >
-      <Container maxWidth="lg" sx={{ px: { xs: 1.5, sm: 2, md: 3, lg: 4 } }}>
+    <Box sx={{ backgroundColor: modernColors.surface.body, minHeight: '100vh' }}>
+      <Box
+        component="main"
+        sx={{
+          maxWidth: 1200,
+          mx: 'auto',
+          boxSizing: 'border-box',
+          px: { xs: 2, sm: 3 },
+          pt: { xs: 3, sm: 4 },
+          pb: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 3,
+        }}
+      >
         {children}
-      </Container>
+      </Box>
     </Box>
   );
 };

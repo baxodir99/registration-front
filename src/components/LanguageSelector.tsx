@@ -2,146 +2,60 @@ import React from "react";
 import { FormControl, Select, MenuItem, Box, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { LANGUAGES } from "../constants";
-import { modernColors, modernBorderRadius } from "../theme/modernTheme";
+import { modernColors } from "../theme/modernTheme";
 import { Language } from "../types";
 
-// SVG Flag component
-const FlagIcon: React.FC<{ countryCode: string }> = ({ countryCode }) => {
-  return (
-    <img
-      src={`https://flagcdn.com/w20/${countryCode}.png`}
-      srcSet={`https://flagcdn.com/w40/${countryCode}.png 2x`}
-      width="20"
-      alt={countryCode}
-      style={{
-        borderRadius: "2px",
-        objectFit: "cover",
-      }}
-    />
-  );
-};
+const LanguageLabel: React.FC<{ short: string; name: string }> = ({ short, name }) => (
+  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+    <Typography
+      component="span"
+      sx={{ fontSize: "12px", fontWeight: 600, color: modernColors.gray[600] }}
+    >
+      {short}
+    </Typography>
+    <Typography component="span" sx={{ fontSize: "14px", fontWeight: 600 }}>
+      {name}
+    </Typography>
+  </Box>
+);
 
 const LanguageSelector: React.FC = () => {
-  const { i18n } = useTranslation();
-
-  const handleLanguageChange = (language: Language) => {
-    i18n.changeLanguage(language);
-  };
-
-  // Map language codes to country codes for flags
-  const getFlagCode = (langCode: string) => {
-    const flagMap: Record<string, string> = {
-      uz: "uz",
-      ru: "ru",
-      en: "us",
-      kaa: "uz",
-    };
-    return flagMap[langCode] || "uz";
-  };
+  const { i18n, t } = useTranslation();
 
   return (
-    <FormControl
-      size="small"
-      sx={{
-        minWidth: 140,
-        backgroundColor: modernColors.gray[50],
-        border: `1px solid ${modernColors.gray[200]}`,
-        borderRadius: modernBorderRadius.xs,
-      }}
-    >
+    <FormControl size="small" sx={{ minWidth: 150 }}>
       <Select
         value={i18n.language}
-        onChange={(e) => handleLanguageChange(e.target.value as Language)}
-        displayEmpty
+        onChange={(e) => i18n.changeLanguage(e.target.value as Language)}
+        inputProps={{ "aria-label": t("header.language") }}
         renderValue={(selected) => {
           const lang = LANGUAGES.find((l) => l.code === selected);
-          return (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              <FlagIcon countryCode={getFlagCode(selected)} />
-              <Typography
-                variant="body2"
-                sx={{
-                  color: "text.primary",
-                  fontWeight: 500,
-                  fontSize: "14px",
-                }}
-              >
-                {lang?.name}
-              </Typography>
-            </Box>
-          );
+          return lang ? <LanguageLabel short={lang.short} name={lang.name} /> : null;
         }}
         sx={{
-          "& .MuiSelect-select": {
-            py: 1.5,
-            px: 2,
-            border: "none",
-            color: "text.primary",
-          },
+          minHeight: 44,
+          borderRadius: "10px",
+          backgroundColor: modernColors.surface.primary,
           "& .MuiOutlinedInput-notchedOutline": {
-            border: "none",
-          },
-          "& .MuiSvgIcon-root": {
-            color: modernColors.gray[600],
-          },
-          "&:hover .MuiOutlinedInput-notchedOutline": {
-            border: "none",
-          },
-          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-            border: "none",
+            borderColor: modernColors.gray[200],
           },
         }}
         MenuProps={{
           PaperProps: {
             sx: {
-              borderRadius: modernBorderRadius.xxs,
+              borderRadius: "10px",
               mt: 0.5,
               border: `1px solid ${modernColors.gray[200]}`,
               boxShadow: "none",
-              "& .MuiList-root": {
-                py: 0,
-              },
             },
           },
         }}
       >
-        {LANGUAGES.map((language) => {
-          const isSelected = language.code === i18n.language;
-          return (
-            <MenuItem
-              key={language.code}
-              value={language.code}
-              selected={isSelected}
-              sx={{
-                py: 1.5,
-                px: 2,
-                "&:hover": {
-                  backgroundColor: modernColors.gray[50],
-                },
-                ...(isSelected && {
-                  backgroundColor: modernColors.primary[50],
-                  "&:hover": {
-                    backgroundColor: modernColors.primary[100],
-                  },
-                }),
-              }}
-            >
-
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-              <FlagIcon countryCode={getFlagCode(language.code)} />
-              <Typography
-                variant="body2"
-                sx={{
-                  fontWeight: 500,
-                  fontSize: "14px",
-                }}
-              >
-                {language.name}
-              </Typography>
-            </Box>
-            </MenuItem>
-          );
-        })}
+        {LANGUAGES.map((language) => (
+          <MenuItem key={language.code} value={language.code} sx={{ minHeight: 44 }}>
+            <LanguageLabel short={language.short} name={language.name} />
+          </MenuItem>
+        ))}
       </Select>
     </FormControl>
   );

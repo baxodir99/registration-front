@@ -17,6 +17,9 @@ export const API_ENDPOINTS = {
 } as const;
 
 
+// Yordam xizmati (matni locales da: header.help)
+export const SUPPORT_PHONE_TEL = "+998955156868";
+
 // Validation Rules
 export const VALIDATION = {
   PNFL_LENGTH: 14,
@@ -38,10 +41,10 @@ export const STORAGE_KEYS = {
 
 // Languages
 export const LANGUAGES = [
-  { code: "uz", name: "O'zbek", flag: "🇺🇿" },
-  { code: "ru", name: "Русский", flag: "🇷🇺" },
-  { code: "en", name: "English", flag: "🇺🇸" },
-  { code: "kaa", name: "Qaraqalpaq", flag: "🇺🇿" },
+  { code: "uz", short: "UZ", name: "O'zbekcha" },
+  { code: "ru", short: "RU", name: "Русский" },
+  { code: "en", short: "EN", name: "English" },
+  { code: "kaa", short: "QQ", name: "Qaraqalpaqsha" },
 ] as const;
 
 export const DEFAULT_LANGUAGE = "uz";

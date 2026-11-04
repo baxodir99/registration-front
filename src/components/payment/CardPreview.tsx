@@ -51,7 +51,7 @@ const CardPreview: React.FC<CardPreviewProps> = ({ cardNumber, expiry, focus }) 
         width: '100%',
         maxWidth: 420,
         aspectRatio: '1.586 / 1',
-        borderRadius: 3,
+        borderRadius: '16px',
         background: BRAND_GRADIENTS[brand],
         boxShadow:
           '0 20px 40px -12px rgba(0, 0, 0, 0.25), 0 8px 16px -4px rgba(0, 0, 0, 0.12)',
@@ -105,7 +105,7 @@ const CardPreview: React.FC<CardPreviewProps> = ({ cardNumber, expiry, focus }) 
           sx={{
             width: 44,
             height: 32,
-            borderRadius: 1,
+            borderRadius: '8px',
             background:
               'linear-gradient(135deg, #FCD34D 0%, #F59E0B 50%, #B45309 100%)',
             position: 'relative',

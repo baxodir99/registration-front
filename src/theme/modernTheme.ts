@@ -3,47 +3,48 @@ import { createTheme, ThemeOptions } from '@mui/material/styles';
 // Modern Clean Color Palette - Soft & Easy on Eyes
 const colors = {
   primary: {
-    50: '#F0F9FF',
-    100: '#E0F2FE',
-    200: '#BAE6FD',
-    300: '#7DD3FC',
-    400: '#38BDF8',
-    500: '#0EA5E9', // Main - Soft Sky Blue
-    600: '#0284C7',
-    700: '#0369A1',
-    800: '#075985',
-    900: '#0C4A6E',
+    50: '#E6F2EF',  // Tanlangan karta foni
+    100: '#CFE6E0',
+    200: '#A8D5C3',
+    300: '#6FB5A5',
+    400: '#3A8E7E',
+    500: '#0F6B5C',
+    600: '#0F6B5C', // Asosiy
+    700: '#0A4F44', // Hover
+    800: '#0F3D36',
+    900: '#0A2B26',
   },
   gray: {
-    50: '#FAFAF9',   // Very light warm gray
-    100: '#F5F5F4',  // Light warm gray
-    200: '#E7E5E4',  // Soft gray
-    300: '#D6D3D1',  // Medium light gray
-    400: '#A8A29E',  // Medium gray
-    500: '#78716C',  // Text secondary
-    600: '#57534E',  // Text primary
-    700: '#44403C',  // Dark text
-    800: '#292524',  // Very dark
-    900: '#1C1917',  // Almost black
+    50: '#F3F5F4',  // Sahifa foni
+    100: '#E9EDEB',
+    200: '#DCE3E0', // Karta chegarasi
+    300: '#CBD5D1', // Input chegarasi
+    400: '#9AABA6',
+    500: '#5E6E6A', // Kichik label
+    600: '#4A5B57', // Izohlar
+    700: '#3E504B',
+    800: '#1F332E',
+    900: '#10231F', // Asosiy matn
   },
   semantic: {
-    success: '#16A34A',  // Softer green
-    warning: '#EA580C',  // Softer orange
-    error: '#DC2626',    // Softer red
-    info: '#0EA5E9',     // Sky blue
+    success: '#0E6B4C',
+    warning: '#7A4F0D',
+    error: '#8C2A2E',
+    info: '#2C64A6',
   },
   surface: {
-    primary: '#FFFFFF',     // Pure white for cards
-    secondary: '#FAFAF9',   // Very light warm background
-    tertiary: '#F5F5F4',    // Light warm background
-    body: '#FAFAF9',        // Body background - warm light
+    primary: '#FFFFFF',
+    secondary: '#F3F5F4',
+    tertiary: '#E9EDEB',
+    body: '#F3F5F4',
   }
 };
 
 // Modern Typography System
 const typography = {
   fontFamily: [
-    'Inter',
+    'Onest',
+    'system-ui',
     '-apple-system',
     'BlinkMacSystemFont',
     '"Segoe UI"',
@@ -124,8 +125,8 @@ const customSpacingValues = {
 // Using small radius values for clean, modern appearance
 const borderRadius = {
   none: 0,
-  xxs: 2,   // Ultra minimal (main containers, barely visible rounding)
-  xs: 4,    // Minimal radius (alerts, small elements)
+  xxs: 8,   // Kichik elementlar
+  xs: 10,   // Input va tugmalar
   sm: 8,    // Small radius (cards, nested elements)
   md: 12,   // Medium radius (buttons, alerts)
   lg: 16,   // Large radius (modals, large cards)
@@ -210,7 +211,8 @@ export const createModernTheme = (): ThemeOptions => ({
   },
   
   shape: {
-    borderRadius: borderRadius.md,
+    // sx dagi borderRadius raqami shu songa ko'paytiriladi: 1 bo'lsa modernBorderRadius qiymati aniq px
+    borderRadius: 1,
   },
   
   spacing: 8, // 8px base unit
