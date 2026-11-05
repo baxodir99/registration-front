@@ -20,6 +20,7 @@ import { apiService } from '../services/api';
 import { examSelectionSchema } from '../utils/validation';
 import { dayMonth, longDate } from '../utils/dates';
 import { discountedAmount, formatMoney } from '../utils/price';
+import { regionName } from '../utils/regions';
 import { modernColors, statusColors } from '../theme/modernTheme';
 import { Exam, ExamDate, ExamName, FormData, PromoCode, Region } from '../types';
 import ExamCalendar, { dateStatus } from './ExamCalendar';
@@ -254,7 +255,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75 }}>
             <InfoItem strong label={t('exam_selection.summary_exam')} value={selectedExamName?.name || t('exam_selection.not_selected')} />
             <InfoItem label={t('exam_selection.summary_direction')} value={selectedExam?.name || t('exam_selection.not_selected')} />
-            <InfoItem label={t('exam_selection.summary_region')} value={selectedRegion?.name || t('exam_selection.not_selected')} />
+            <InfoItem label={t('exam_selection.summary_region')} value={regionName(t, selectedRegion?.name) || t('exam_selection.not_selected')} />
             <InfoItem
               label={t('exam_selection.summary_date')}
               value={selectedDate ? longDate(selectedDate.date, i18n.language) : t('exam_selection.not_selected')}
@@ -444,7 +445,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
             >
               <MenuItem value="" disabled>{t('exam_selection.region_placeholder')}</MenuItem>
               {regionOptions.map((item) => (
-                <MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>
+                <MenuItem key={item.id} value={item.id}>{regionName(t, item.name)}</MenuItem>
               ))}
             </Select>
           </Box>

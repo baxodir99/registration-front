@@ -6,6 +6,7 @@ import { PROMOCODE_ENABLED } from '../constants';
 import { apiService } from '../services/api';
 import { formatDate } from '../utils/validation';
 import { discountedAmount, formatMoney } from '../utils/price';
+import { regionName } from '../utils/regions';
 import { modernColors, statusColors } from '../theme/modernTheme';
 import { Exam, ExamDate, ExamName, FormData, FormStep, Region, Type } from '../types';
 import {
@@ -139,7 +140,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
           <InfoItem strong label={t('confirmation.field_name')} value={examName?.name} />
           <InfoItem label={t('confirmation.field_direction')} value={exam?.name} />
           {type && <InfoItem label={t('confirmation.field_type')} value={type.name} />}
-          <InfoItem label={t('confirmation.field_region')} value={region?.name} />
+          <InfoItem label={t('confirmation.field_region')} value={regionName(t, region?.name)} />
           <InfoItem label={t('confirmation.field_date')} value={examDate ? formatDate(examDate.date) : undefined} />
         </Box>
       </SectionCard>

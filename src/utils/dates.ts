@@ -11,9 +11,12 @@ export const dayjsLocale = (language: string): string => {
 
 const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
-/** "Dekabr 2026" */
-export const monthLabel = (date: Dayjs, language: string): string =>
-  capitalize(date.locale(dayjsLocale(language)).format('MMMM YYYY'));
+/** "2026-yil dekabr" (uz), "2026-jıl dekabr" (kaa) yoki "Декабрь 2026" */
+export const monthLabel = (date: Dayjs, language: string): string => {
+  const value = date.locale(dayjsLocale(language));
+  if (dayjsLocale(language) !== 'uz-latn') return capitalize(value.format('MMMM YYYY'));
+  return `${value.year()}-${language === 'kaa' ? 'jıl' : 'yil'} ${value.format('MMMM').toLowerCase()}`;
+};
 
 /** "Dekabr" */
 export const monthName = (date: Dayjs, language: string): string =>

@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Registration, RegistrationStatus } from '../../services/auth';
 import { dayjsLocale, dayMonth } from '../../utils/dates';
 import { formatMoney } from '../../utils/price';
+import { regionName } from '../../utils/regions';
 import { modernColors, statusColors } from '../../theme/modernTheme';
 import { useCabinet } from './CabinetLayout';
 
@@ -47,7 +48,7 @@ const ExamCard: React.FC<{ row: Registration }> = ({ row }) => {
       <Box sx={{ flex: '1 1 220px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
         <Typography component="h3" sx={{ m: 0, fontSize: '16px', fontWeight: 700, overflowWrap: 'anywhere' }}>{row.exam}</Typography>
         <Typography component="span" sx={{ fontSize: '14px', color: modernColors.gray[600] }}>
-          {[row.region, `${formatMoney(row.amount)} ${currency}`].filter(Boolean).join(' · ')}
+          {[regionName(t, row.region), `${formatMoney(row.amount)} ${currency}`].filter(Boolean).join(' · ')}
         </Typography>
         {row.status === 'pending' && row.deadline && (
           <Typography component="span" sx={{ fontSize: '13px', color: statusColors.warning.text }}>

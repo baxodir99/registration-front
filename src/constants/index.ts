@@ -44,7 +44,7 @@ export const STORAGE_KEYS = {
 
 // Languages
 export const LANGUAGES = [
-  { code: "uz", short: "UZ", name: "O'zbekcha" },
+  { code: "uz", short: "UZ", name: "Oʻzbekcha" },
   { code: "ru", short: "RU", name: "Русский" },
   { code: "en", short: "EN", name: "English" },
   { code: "kaa", short: "QQ", name: "Qaraqalpaqsha" },

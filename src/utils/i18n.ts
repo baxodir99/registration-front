@@ -35,9 +35,12 @@ i18n
     },
   });
 
+document.documentElement.lang = i18n.language;
+
 // Save language to sessionStorage when it changes
 i18n.on('languageChanged', (lng) => {
   sessionStorage.setItem(STORAGE_KEYS.LANGUAGE, lng);
+  document.documentElement.lang = lng;
 });
 
 export default i18n;

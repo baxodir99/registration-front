@@ -7,6 +7,7 @@ import {
   DialogActions,
   Button,
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 interface ResetDialogProps {
   open: boolean;
@@ -15,6 +16,8 @@ interface ResetDialogProps {
 }
 
 const ResetDialog: React.FC<ResetDialogProps> = ({ open, onClose, onConfirm }) => {
+  const { t } = useTranslation();
+
   return (
     <Dialog
       open={open}
@@ -22,19 +25,18 @@ const ResetDialog: React.FC<ResetDialogProps> = ({ open, onClose, onConfirm }) =
       aria-labelledby="reset-dialog-title"
       aria-describedby="reset-dialog-description"
     >
-      <DialogTitle id="reset-dialog-title">Ma'lumotlarni tozalash</DialogTitle>
+      <DialogTitle id="reset-dialog-title">{t('reset_dialog.title')}</DialogTitle>
       <DialogContent>
         <DialogContentText id="reset-dialog-description">
-          Barcha kiritilgan ma'lumotlar o'chiriladi va ro'yxatdan o'tish jarayoni qaytadan
-          boshlanadi. Davom etishni xohlaysizmi?
+          {t('reset_dialog.body')}
         </DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} color="inherit">
-          Bekor qilish
+          {t('common.cancel')}
         </Button>
         <Button onClick={onConfirm} color="error" variant="contained">
-          Tozalash
+          {t('reset_dialog.confirm')}
         </Button>
       </DialogActions>
     </Dialog>

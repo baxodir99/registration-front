@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, useMediaQuery } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { longDate } from '../../utils/dates';
+import { regionName } from '../../utils/regions';
 import { discountedAmount, formatMoney } from '../../utils/price';
 import { Exam, ExamDate, ExamName, FormData, Region } from '../../types';
 import { AsideCard, CardTitle, Divider, InfoItem, TextLink, TotalRow } from '../ui';
@@ -33,7 +34,7 @@ const SelectionPanel: React.FC<SelectionPanelProps> = ({ formData, examNames, re
       </Box>
       <Box sx={{ display: isMobile ? 'grid' : 'flex', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', flexDirection: 'column', gap: 1.5 }}>
         <InfoItem strong label={t('exam_selection.summary_exam')} value={name} />
-        <InfoItem label={t('exam_selection.summary_region')} value={regions.find((r) => r.id === formData.region)?.name} />
+        <InfoItem label={t('exam_selection.summary_region')} value={regionName(t, regions.find((r) => r.id === formData.region)?.name)} />
         <InfoItem label={t('exam_selection.summary_date')} value={examDate ? longDate(examDate.date, i18n.language) : undefined} />
       </Box>
       <Divider />
