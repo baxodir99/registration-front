@@ -7,6 +7,7 @@ import { Registration, RegistrationStatus } from '../../services/auth';
 import { dayjsLocale, dayMonth } from '../../utils/dates';
 import { formatMoney } from '../../utils/price';
 import { regionName } from '../../utils/regions';
+import { mediaUrl } from '../../utils/media';
 import { modernColors, statusColors } from '../../theme/modernTheme';
 import { useCabinet } from './CabinetLayout';
 
@@ -62,7 +63,7 @@ const ExamCard: React.FC<{ row: Registration }> = ({ row }) => {
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
         {row.status === 'pending' && <Action primary to={`/tolov/${row.invoice}`}>{t('cabinet.pay')}</Action>}
         {row.status === 'registered' && row.info_doc_url && (
-          <Action href={row.info_doc_url} target="_blank" rel="noopener noreferrer">{t('cabinet.info_doc')}</Action>
+          <Action href={mediaUrl(row.info_doc_url)} target="_blank" rel="noopener noreferrer">{t('cabinet.info_doc')}</Action>
         )}
         {row.status === 'done' && row.has_result && <Action to="/kabinet/natijalar">{t('cabinet.see_result')}</Action>}
         {row.status === 'done' && row.has_certificate && <Action to="/kabinet/sertifikatlar">{t('cabinet.certificate')}</Action>}

@@ -7,6 +7,7 @@ import { apiService } from '../services/api';
 import { formatDate } from '../utils/validation';
 import { discountedAmount, formatMoney } from '../utils/price';
 import { regionName } from '../utils/regions';
+import { mediaUrl } from '../utils/media';
 import { modernColors, statusColors } from '../theme/modernTheme';
 import { Exam, ExamDate, ExamName, FormData, FormStep, Region, Type } from '../types';
 import {
@@ -63,7 +64,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
   const type = types.find((item) => item.id === exam?.type);
   const examDate = examDates.find((ed) => ed.id === formData.examDate);
   const profile = formData.userProfile;
-  const offerLink = examName?.offer;
+  const offerLink = examName?.offer ? mediaUrl(examName.offer) : undefined;
 
   const original = exam ? parseFloat(exam.amount) : 0;
   const final = discountedAmount(original, formData.promocodeData);

@@ -4,6 +4,7 @@ import { WorkspacePremiumOutlined as CertificateIcon } from '@mui/icons-material
 import { useTranslation } from 'react-i18next';
 import { authApi, Certificate } from '../../services/auth';
 import { formatDateRange } from '../../utils/validation';
+import { mediaUrl } from '../../utils/media';
 import { modernColors } from '../../theme/modernTheme';
 
 const buttonSx = { minHeight: 44, py: 0, px: 2, borderRadius: '10px', fontSize: '14px', fontWeight: 600, flex: '1 1 auto' };
@@ -41,8 +42,8 @@ const CertificatesPage: React.FC = () => {
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {row.pdf_url && (
                   <>
-                    <Button variant="outlined" href={row.pdf_url} target="_blank" rel="noopener noreferrer" sx={{ ...buttonSx, color: modernColors.gray[900], borderColor: modernColors.gray[300] }}>{t('cabinet.view')}</Button>
-                    <Button variant="contained" disableElevation href={row.pdf_url} download sx={buttonSx}>{t('cabinet.download_pdf')}</Button>
+                    <Button variant="outlined" href={mediaUrl(row.pdf_url)} target="_blank" rel="noopener noreferrer" sx={{ ...buttonSx, color: modernColors.gray[900], borderColor: modernColors.gray[300] }}>{t('cabinet.view')}</Button>
+                    <Button variant="contained" disableElevation href={mediaUrl(row.pdf_url)} download sx={buttonSx}>{t('cabinet.download_pdf')}</Button>
                   </>
                 )}
                 {!row.pdf_url && image && (
