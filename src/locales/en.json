@@ -338,7 +338,9 @@
     "promo_2": "Payment history",
     "promo_2_sub": "Pay anything unpaid in one click",
     "promo_3": "Results and certificates",
-    "promo_3_sub": "Mock exam scores, PDF certificates"
+    "promo_3_sub": "Mock exam scores, PDF certificates",
+    "show_password": "Show password",
+    "hide_password": "Hide password"
   },
   "cabinet": {
     "title": "Personal cabinet",

@@ -338,7 +338,9 @@
     "promo_2": "To'lovlar tarixi",
     "promo_2_sub": "To'lanmaganini bir bosishda to'lang",
     "promo_3": "Natijalar va sertifikatlar",
-    "promo_3_sub": "Mock imtihon ballari, PDF sertifikatlar"
+    "promo_3_sub": "Mock imtihon ballari, PDF sertifikatlar",
+    "show_password": "Parolni ko'rsatish",
+    "hide_password": "Parolni yashirish"
   },
   "cabinet": {
     "title": "Shaxsiy kabinet",

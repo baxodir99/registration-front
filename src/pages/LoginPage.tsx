@@ -3,7 +3,7 @@ import { Link as RouterLink, Navigate, useNavigate, useSearchParams } from 'reac
 import { Box, Button, InputAdornment, Link, OutlinedInput, Typography } from '@mui/material';
 import { ArrowBack as BackIcon, Check as CheckIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
-import { Notice, FieldLabel, inputSx, PrimaryButton } from '../components/ui';
+import { Notice, FieldLabel, inputSx, PasswordInput, PrimaryButton } from '../components/ui';
 import OtpInput from '../components/payment/OtpInput';
 import LanguageSelector from '../components/LanguageSelector';
 import { useAuth } from '../context/AuthContext';
@@ -34,11 +34,11 @@ export const PasswordFields: React.FC<{
     <>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
         <FieldLabel htmlFor="pw1">{t('auth.new_password')}</FieldLabel>
-        <OutlinedInput id="pw1" type="password" autoComplete="new-password" value={password} onChange={(e) => onChange(e.target.value, password2)} sx={inputSx} />
+        <PasswordInput id="pw1" autoComplete="new-password" value={password} onChange={(e) => onChange(e.target.value, password2)} />
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
         <FieldLabel htmlFor="pw2">{t('auth.repeat_password')}</FieldLabel>
-        <OutlinedInput id="pw2" type="password" autoComplete="new-password" value={password2} onChange={(e) => onChange(password, e.target.value)} sx={inputSx} />
+        <PasswordInput id="pw2" autoComplete="new-password" value={password2} onChange={(e) => onChange(password, e.target.value)} />
       </Box>
       <Box component="ul" sx={{ m: 0, p: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 0.5, fontSize: '13px' }}>
         {passwordRules(password, password2).map((rule) => (
@@ -324,7 +324,7 @@ const LoginPage: React.FC = () => {
                           {t('auth.forgot')}
                         </Link>
                       </Box>
-                      <OutlinedInput id="lpw" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} sx={inputSx} />
+                      <PasswordInput id="lpw" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
                     </Box>
                     <PrimaryButton fullWidth loading={loading} disabled={!phoneValid || !password} onClick={passwordLogin}>
                       {t('auth.login')}

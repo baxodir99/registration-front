@@ -1,10 +1,12 @@
 // Yangi dizaynning umumiy bloklari (docs/redesign/screens maketlari asosida)
-import React from 'react';
-import { Box, Button, ButtonProps, CircularProgress, Link, SxProps, Theme, Typography } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Button, ButtonProps, CircularProgress, IconButton, InputAdornment, Link, OutlinedInput, OutlinedInputProps, SxProps, Theme, Typography } from '@mui/material';
 import {
   ErrorOutline as ErrorIcon,
   InfoOutlined as InfoIcon,
   NotificationsNone as BellIcon,
+  Visibility as ShowIcon,
+  VisibilityOff as HideIcon,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { SUPPORT_PHONE_TEL } from '../constants';
@@ -149,6 +151,35 @@ export const inputSx: SxProps<Theme> = {
   fontSize: '15px',
   backgroundColor: modernColors.surface.primary,
   '& .MuiOutlinedInput-notchedOutline': { borderColor: modernColors.gray[300] },
+};
+
+/** Parol maydoni: ko'zcha bilan yozilganini ko'rish mumkin */
+export const PasswordInput: React.FC<OutlinedInputProps> = (props) => {
+  const { t } = useTranslation();
+  const [visible, setVisible] = useState(false);
+  const label = t(visible ? 'auth.hide_password' : 'auth.show_password');
+  return (
+    <OutlinedInput
+      {...props}
+      type={visible ? 'text' : 'password'}
+      sx={inputSx}
+      endAdornment={
+        <InputAdornment position="end">
+          <IconButton
+            aria-label={label}
+            aria-pressed={visible}
+            title={label}
+            edge="end"
+            onClick={() => setVisible((value) => !value)}
+            onMouseDown={(e) => e.preventDefault()}
+            sx={{ width: 44, height: 44 }}
+          >
+            {visible ? <HideIcon /> : <ShowIcon />}
+          </IconButton>
+        </InputAdornment>
+      }
+    />
+  );
 };
 
 const KIND = {
