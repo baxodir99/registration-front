@@ -15,6 +15,7 @@ import { Check as CheckIcon, Close as CloseIcon } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { useFormik } from 'formik';
 import { useTranslation } from 'react-i18next';
+import { PROMOCODE_ENABLED } from '../constants';
 import { apiService } from '../services/api';
 import { examSelectionSchema } from '../utils/validation';
 import { dayMonth, longDate } from '../utils/dates';
@@ -30,6 +31,7 @@ import {
   FieldLabel,
   InfoItem,
   inputSx,
+  Notice,
   PrimaryButton,
   SectionCard,
   StepLayout,
@@ -56,13 +58,15 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
   const isMobile = useMediaQuery('(max-width:600px)');
 
   const [exams, setExams] = useState<Exam[]>([]);
+  // Tanlangan imtihon nomining o'tkazilayotgan sanalari: qaysi hududda nima borligi shundan
+  const [offered, setOffered] = useState<ExamDate[] | null>(null);
   const [examDates, setExamDates] = useState<ExamDate[]>([]);
   const [datesLoading, setDatesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [month, setMonth] = useState(dayjs().startOf('month'));
 
-  const [promocodeInput, setPromocodeInput] = useState(initialData?.promocode || '');
-  const [promocodeData, setPromocodeData] = useState<PromoCode | null>(initialData?.promocodeData || null);
+  const [promocodeInput, setPromocodeInput] = useState(PROMOCODE_ENABLED ? initialData?.promocode || '' : '');
+  const [promocodeData, setPromocodeData] = useState<PromoCode | null>(PROMOCODE_ENABLED ? initialData?.promocodeData || null : null);
   const [promocodeLoading, setPromocodeLoading] = useState(false);
   const [promocodeError, setPromocodeError] = useState<string | null>(null);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -101,23 +105,23 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
   }, [examName, region, exam, examDate, promocodeInput, promocodeData]);
 
   useEffect(() => {
+    setOffered(null);
     if (!examName) {
       setExams([]);
       return;
     }
     let stale = false;
     setError(null);
-    apiService
-      .getExams({ examname: Number(examName) })
-      .then((data) => {
+    Promise.all([
+      apiService.getExams({ examname: Number(examName) }),
+      apiService.getExamDates({ examname: Number(examName) }),
+    ])
+      .then(([examList, dates]) => {
         if (stale) return;
-        setExams(data);
-        if (data.length === 1) {
-          formik.setFieldValue('exam', data[0].id);
-        } else if (exam && !data.some((e) => e.id === Number(exam))) {
-          formik.setFieldValue('exam', '');
-          formik.setFieldValue('examDate', '');
-        }
+        const today = dayjs();
+        setExams(examList);
+        // Ro'yxati yopilgan sana hududni "mavjud" qilmaydi
+        setOffered(dates.filter((d) => !d.regstration_close || !dayjs(d.regstration_close).isBefore(today, 'day')));
       })
       .catch(() => {
         if (!stale) setError(t('common.error'));
@@ -127,6 +131,27 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [examName]);
+
+  const regionOptions = regions.filter((item) => offered?.some((d) => d.region.includes(item.name)));
+  const chosenRegion = regionOptions.find((item) => item.id === Number(region));
+  const examOptions = exams.filter((item) =>
+    offered?.some((d) => d.exam === item.id && chosenRegion && d.region.includes(chosenRegion.name))
+  );
+
+  // Hudud shu imtihonda bo'lmasa bo'shatiladi; yo'nalish hududga mos kelishi kerak
+  useEffect(() => {
+    if (!offered) return;
+    if (region && !chosenRegion) {
+      formik.setValues({ examName, region: '', exam: '', examDate: '' });
+    } else if (chosenRegion) {
+      if (examOptions.length === 1 && Number(exam) !== examOptions[0].id) {
+        formik.setValues({ examName, region, exam: examOptions[0].id, examDate: '' });
+      } else if (exam && !examOptions.some((item) => item.id === Number(exam))) {
+        formik.setValues({ examName, region, exam: '', examDate: '' });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offered, region, exams]);
 
   useEffect(() => {
     if (!exam || !region) {
@@ -258,40 +283,42 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
         </>
       )}
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-        <FieldLabel htmlFor="promo">
-          {t('confirmation.promocode')}{' '}
-          <Box component="span" sx={{ fontWeight: 400, color: modernColors.gray[500] }}>
-            {t('exam_selection.promo_optional')}
-          </Box>
-        </FieldLabel>
-        <OutlinedInput
-          id="promo"
-          value={promocodeInput}
-          onChange={(e) => handlePromocodeChange(e.target.value)}
-          placeholder={t('confirmation.promocode_placeholder')}
-          error={Boolean(promocodeError)}
-          inputProps={{ style: { textTransform: 'uppercase' } }}
-          sx={{ ...(inputSx as object), minHeight: 44 }}
-          endAdornment={
-            <InputAdornment position="end">
-              {promocodeLoading && <CircularProgress size={18} />}
-              {!promocodeLoading && promocodeInput && (
-                <IconButton size="small" aria-label={t('confirmation.remove_promocode')} onClick={() => handlePromocodeChange('')}>
-                  <CloseIcon fontSize="small" />
-                </IconButton>
-              )}
-            </InputAdornment>
-          }
-        />
-        {promocodeError && <FieldHint error>{promocodeError}</FieldHint>}
-        {promocodeData && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: '12px', fontWeight: 600, color: statusColors.success.text }}>
-            <CheckIcon sx={{ fontSize: 16 }} />
-            {t('confirmation.promocode_applied')}
-          </Box>
-        )}
-      </Box>
+      {PROMOCODE_ENABLED && (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+          <FieldLabel htmlFor="promo">
+            {t('confirmation.promocode')}{' '}
+            <Box component="span" sx={{ fontWeight: 400, color: modernColors.gray[500] }}>
+              {t('exam_selection.promo_optional')}
+            </Box>
+          </FieldLabel>
+          <OutlinedInput
+            id="promo"
+            value={promocodeInput}
+            onChange={(e) => handlePromocodeChange(e.target.value)}
+            placeholder={t('confirmation.promocode_placeholder')}
+            error={Boolean(promocodeError)}
+            inputProps={{ style: { textTransform: 'uppercase' } }}
+            sx={{ ...(inputSx as object), minHeight: 44 }}
+            endAdornment={
+              <InputAdornment position="end">
+                {promocodeLoading && <CircularProgress size={18} />}
+                {!promocodeLoading && promocodeInput && (
+                  <IconButton size="small" aria-label={t('confirmation.remove_promocode')} onClick={() => handlePromocodeChange('')}>
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                )}
+              </InputAdornment>
+            }
+          />
+          {promocodeError && <FieldHint error>{promocodeError}</FieldHint>}
+          {promocodeData && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: '12px', fontWeight: 600, color: statusColors.success.text }}>
+              <CheckIcon sx={{ fontSize: 16 }} />
+              {t('confirmation.promocode_applied')}
+            </Box>
+          )}
+        </Box>
+      )}
 
       {isMobile && selectedExam && selectedDate && (
         <Box sx={{ fontSize: '13px', color: modernColors.gray[600] }}>
@@ -409,13 +436,14 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
               id="region"
               name="region"
               displayEmpty
-              value={region}
+              value={chosenRegion ? region : ''}
               onChange={formik.handleChange}
+              disabled={!offered}
               inputProps={{ 'aria-label': t('exam_selection.region') }}
               sx={inputSx}
             >
               <MenuItem value="" disabled>{t('exam_selection.region_placeholder')}</MenuItem>
-              {regions.map((item) => (
+              {regionOptions.map((item) => (
                 <MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>
               ))}
             </Select>
@@ -426,19 +454,20 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
               id="exam"
               name="exam"
               displayEmpty
-              value={exams.some((e) => e.id === Number(exam)) ? exam : ''}
+              value={examOptions.some((e) => e.id === Number(exam)) ? exam : ''}
               onChange={formik.handleChange}
-              disabled={!examName}
+              disabled={!chosenRegion}
               inputProps={{ 'aria-label': t('exam_selection.exam') }}
               sx={inputSx}
             >
               <MenuItem value="" disabled>{t('exam_selection.exam_placeholder')}</MenuItem>
-              {exams.map((item) => (
+              {examOptions.map((item) => (
                 <MenuItem key={item.id} value={item.id}>{item.name}</MenuItem>
               ))}
             </Select>
           </Box>
         </Box>
+        {offered && regionOptions.length === 0 && <Notice>{t('exam_selection.no_regions')}</Notice>}
       </SectionCard>
 
       <ExamCalendar

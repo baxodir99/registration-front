@@ -111,7 +111,8 @@
     "date_full_warning": "Ushbu sanaga ro'yxatdan o'tish imkoni yo'q, boshqa sanani tanlang",
     "debug_exam_dates": "Imtihon/malaka oshirish sanalari",
     "debug_available": "Mavjud",
-    "debug_selected": "Tanlangan"
+    "debug_selected": "Tanlangan",
+    "no_regions": "Bu imtihon uchun hozircha ochiq hudud yo'q."
   },
   "personalization": {
     "subtitle": "JSHSHIR va pasport raqamini kiriting — ma'lumotlaringiz davlat bazasidan avtomatik olinadi.",

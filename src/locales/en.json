@@ -111,7 +111,8 @@
     "date_full_warning": "Registration for this date is not available, please select another date",
     "debug_exam_dates": "Exam Dates",
     "debug_available": "Available",
-    "debug_selected": "Selected"
+    "debug_selected": "Selected",
+    "no_regions": "No regions are open for this exam yet."
   },
   "personalization": {
     "subtitle": "Enter your PINFL and passport number — your details are retrieved from the state database.",

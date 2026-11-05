@@ -20,6 +20,9 @@ export const API_ENDPOINTS = {
 // Yordam xizmati (matni locales da: header.help)
 export const SUPPORT_PHONE_TEL = "+998955156868";
 
+// Promokod maydoni hozircha yashirilgan. Qayta yoqish uchun true qiling (backend tayyor)
+export const PROMOCODE_ENABLED = false;
+
 // Validation Rules
 export const VALIDATION = {
   PNFL_LENGTH: 14,

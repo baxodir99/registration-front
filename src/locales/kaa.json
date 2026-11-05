@@ -111,7 +111,8 @@
     "full": "Tolı",
     "availability": "Band",
     "availability_explanation": "Hár bir kúnniń toltırılıwlıq dárejasin tómende kórsetilgen",
-    "date_full_warning": "Bul kúnge dizimnen ótiw múmkin emes, basqa kún tańlań"
+    "date_full_warning": "Bul kúnge dizimnen ótiw múmkin emes, basqa kún tańlań",
+    "no_regions": "Bul imtixan ushın házirshe ashıq aymaq joq."
   },
   "personalization": {
     "subtitle": "JSHSHIR hám pasport nomerin kiritiń — maǵlıwmatlarıńız mámleketlik bazadan avtomatik alınadı.",

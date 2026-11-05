@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Box, Button, Checkbox, IconButton, Typography } from '@mui/material';
 import { Download as DownloadIcon, Lock as LockIcon, OpenInNew as OpenIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
+import { PROMOCODE_ENABLED } from '../constants';
 import { apiService } from '../services/api';
 import { formatDate } from '../utils/validation';
 import { discountedAmount, formatMoney } from '../utils/price';
@@ -118,9 +119,11 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
         </>
       )}
       <TotalRow label={t('confirmation.final_amount')} value={`${formatMoney(final)} ${currency}`} />
-      <Typography sx={{ m: 0, fontSize: '13px', lineHeight: 1.5, color: modernColors.gray[500] }}>
-        {t('confirmation.promo_hint')}
-      </Typography>
+      {PROMOCODE_ENABLED && (
+        <Typography sx={{ m: 0, fontSize: '13px', lineHeight: 1.5, color: modernColors.gray[500] }}>
+          {t('confirmation.promo_hint')}
+        </Typography>
+      )}
     </AsideCard>
   );
 
