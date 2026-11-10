@@ -1,9 +1,10 @@
 import React from 'react';
-import { Box, Button, IconButton, Link, Tooltip, Typography } from '@mui/material';
+import { Box, Button, IconButton, Link, Tooltip } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { PersonOutline as PersonIcon, Phone as PhoneIcon, RestartAlt as RestartAltIcon } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from '../LanguageSelector';
+import OrgName from './OrgName';
 import { useAuth } from '../../context/AuthContext';
 import { SUPPORT_PHONE_TEL } from '../../constants';
 import { modernColors } from '../../theme/modernTheme';
@@ -44,14 +45,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ currentStep, onOpenResetDialog })
             <Box component="img" src="/ilmiy-logo.png" alt="" sx={{ width: { xs: 42, sm: 56 }, height: { xs: 30, sm: 40 }, objectFit: 'contain' }} />
             <Box component="img" src="/uzbmb.svg" alt="" sx={{ display: { xs: 'none', sm: 'block' }, width: 44, height: 44, objectFit: 'contain' }} />
           </Box>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontSize: { xs: '14px', sm: '16px' }, fontWeight: 700, lineHeight: 1.25 }}>
-              {t('header.org_name')}
-            </Typography>
-            <Typography sx={{ display: { xs: 'none', md: 'block' }, fontSize: '13px', color: modernColors.gray[600], lineHeight: 1.3 }}>
-              {t('header.org_parent')}
-            </Typography>
-          </Box>
+          <OrgName compact lineSx={{ fontSize: { xs: '14px', md: '15px' }, fontWeight: 700, lineHeight: 1.3 }} />
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1.25 }, flexShrink: 0 }}>

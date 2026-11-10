@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Notice, FieldLabel, inputSx, PasswordInput, PrimaryButton } from '../components/ui';
 import OtpInput from '../components/payment/OtpInput';
 import LanguageSelector from '../components/LanguageSelector';
+import OrgName from '../components/layout/OrgName';
 import { useAuth } from '../context/AuthContext';
 import { authApi, LoginResult } from '../services/auth';
 import { SUPPORT_PHONE_TEL } from '../constants';
@@ -239,10 +240,7 @@ const LoginPage: React.FC = () => {
           <Box sx={{ p: 0.75, borderRadius: '10px', backgroundColor: '#FFFFFF', display: 'flex' }}>
             <img src="/ilmiy-logo.png" alt="" style={{ width: 42, height: 30, objectFit: 'contain' }} />
           </Box>
-          <Box>
-            <Typography sx={{ fontSize: '16px', fontWeight: 700, lineHeight: 1.25 }}>{t('header.org_name')}</Typography>
-            <Typography sx={{ fontSize: '13px', color: '#BFD9D2', lineHeight: 1.3 }}>{t('header.org_parent')}</Typography>
-          </Box>
+          <OrgName lineSx={{ fontSize: '15px', fontWeight: 700, lineHeight: 1.3 }} />
         </Box>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           <Typography component="h2" sx={{ m: 0, fontSize: '36px', lineHeight: 1.2, fontWeight: 700 }}>{t('auth.promo_title')}</Typography>
