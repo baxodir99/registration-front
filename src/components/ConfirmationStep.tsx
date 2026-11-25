@@ -82,6 +82,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
         region: formData.region!,
         terms_accepted: termsAccepted,
         promocode: formData.promocode || undefined,
+        requirements: formData.confirmedRequirements?.length ? formData.confirmedRequirements : undefined,
       });
       if (response.status === 1) {
         onNext({ paymentData: response.data });

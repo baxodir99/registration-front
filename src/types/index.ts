@@ -37,6 +37,13 @@ export interface Exam {
   amount: string;
   created_at: string;
   updated_at: string;
+  // Kursga yozilish talablari (admin'da bog'lanadi). Bo'sh bo'lsa talab yo'q
+  requirements?: Requirement[];
+}
+
+export interface Requirement {
+  id: number;
+  text: Record<'uz' | 'ru' | 'en' | 'kaa', string>;
 }
 
 export interface ExamDate {
@@ -98,6 +105,7 @@ export interface InvoiceRequestForm {
   region: number;
   terms_accepted: boolean;
   promocode?: string;
+  requirements?: number[]; // nomzod belgilagan kurs talablari (Requirement id)
 }
 
 // PromoCode Types
@@ -165,6 +173,8 @@ export interface FormData {
   terms_accepted?: boolean;
   promocode?: string;
   promocodeData?: PromoCode;
+  // Belgilangan kurs talablari (Requirement id), invoice bilan backendga ketadi
+  confirmedRequirements?: number[];
 }
 
 export enum FormStep {

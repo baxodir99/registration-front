@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Button,
+  Checkbox,
   CircularProgress,
+  FormControlLabel,
   IconButton,
   InputAdornment,
   MenuItem,
@@ -22,7 +24,7 @@ import { dayMonth, longDate } from '../utils/dates';
 import { discountedAmount, formatMoney } from '../utils/price';
 import { regionName } from '../utils/regions';
 import { modernColors, statusColors } from '../theme/modernTheme';
-import { Exam, ExamDate, ExamName, FormData, PromoCode, Region } from '../types';
+import { Exam, ExamDate, ExamName, FormData, PromoCode, Region, Requirement } from '../types';
 import ExamCalendar, { dateStatus } from './ExamCalendar';
 import {
   AsideCard,
@@ -71,6 +73,8 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
   const [promocodeLoading, setPromocodeLoading] = useState(false);
   const [promocodeError, setPromocodeError] = useState<string | null>(null);
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Belgilangan kurs talablari (Requirement id)
+  const [confirmed, setConfirmed] = useState<number[]>(initialData?.confirmedRequirements || []);
 
   const formik = useFormik({
     initialValues: {
@@ -88,10 +92,18 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
         examDate: Number(values.examDate),
         promocode: promocodeData ? promocodeInput : undefined,
         promocodeData: promocodeData || undefined,
+        confirmedRequirements: confirmedIds,
       });
     },
   });
   const { examName, region, exam, examDate } = formik.values;
+  // Talablar tanlangan kursning o'zidan keladi (admin'da bog'lanadi); yo'q bo'lsa hech narsa chiqmaydi
+  const requirements: Requirement[] = exams.find((e) => e.id === Number(exam))?.requirements || [];
+  const confirmedIds = requirements.filter((item) => confirmed.includes(item.id)).map((item) => item.id);
+  const checksDone = confirmedIds.length === requirements.length;
+  const lang = (['uz', 'ru', 'en', 'kaa'].includes(i18n.language) ? i18n.language : 'uz') as keyof Requirement['text'];
+  const toggleRequirement = (id: number, on: boolean) =>
+    setConfirmed((prev) => (on ? [...prev.filter((x) => x !== id), id] : prev.filter((x) => x !== id)));
 
   useEffect(() => {
     onDataChange({
@@ -101,9 +113,10 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
       examDate: examDate ? Number(examDate) : undefined,
       promocode: promocodeData ? promocodeInput : undefined,
       promocodeData: promocodeData || undefined,
+      confirmedRequirements: confirmedIds,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [examName, region, exam, examDate, promocodeInput, promocodeData]);
+  }, [examName, region, exam, examDate, promocodeInput, promocodeData, confirmedIds.join(',')]);
 
   useEffect(() => {
     setOffered(null);
@@ -244,7 +257,8 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
   const original = selectedExam ? parseFloat(selectedExam.amount) : 0;
   const final = discountedAmount(original, promocodeData);
   const currency = t('payment.currency');
-  const canContinue = Boolean(selectedExam && selectedRegion && selectedDate && dateStatus(selectedDate) !== 'full');
+  const dateReady = Boolean(selectedExam && selectedRegion && selectedDate && dateStatus(selectedDate) !== 'full');
+  const canContinue = dateReady && checksDone;
   const percent = selectedDate?.capacity ? Math.min((selectedDate.booked / selectedDate.capacity) * 100, 100) : 0;
 
   const aside = (
@@ -349,7 +363,7 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
         </PrimaryButton>
         {!canContinue && (
           <Typography sx={{ m: 0, fontSize: '13px', color: modernColors.gray[600], textAlign: 'center' }}>
-            {t('exam_selection.choose_date_hint')}
+            {dateReady ? t('exam_selection.qualification_hint') : t('exam_selection.choose_date_hint')}
           </Typography>
         )}
       </Box>
@@ -470,6 +484,41 @@ const ExamSelectionStep: React.FC<ExamSelectionStepProps> = ({
         </Box>
         {offered && regionOptions.length === 0 && <Notice>{t('exam_selection.no_regions')}</Notice>}
       </SectionCard>
+
+      {requirements.length > 0 && (
+        <SectionCard>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            <CardTitle>{t('exam_selection.qualification_title')}</CardTitle>
+            <Typography sx={{ m: 0, fontSize: '14px', color: modernColors.gray[600] }}>
+              {t('exam_selection.qualification_sub')}
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {requirements.map((item) => {
+              const checked = confirmed.includes(item.id);
+              return (
+                <FormControlLabel
+                  key={item.id}
+                  control={<Checkbox checked={checked} onChange={(e) => toggleRequirement(item.id, e.target.checked)} />}
+                  label={item.text[lang] || item.text.uz}
+                  sx={{
+                    m: 0,
+                    alignItems: 'flex-start',
+                    gap: 0.5,
+                    p: '10px 12px 10px 4px',
+                    borderRadius: '10px',
+                    border: `1px solid ${checked ? modernColors.primary[600] : modernColors.gray[300]}`,
+                    backgroundColor: checked ? modernColors.primary[50] : 'transparent',
+                    '& .MuiCheckbox-root': { p: '4px 8px' },
+                    '& .MuiFormControlLabel-label': { fontSize: '15px', lineHeight: 1.5, pt: '3px' },
+                  }}
+                />
+              );
+            })}
+          </Box>
+          {!checksDone && <Notice>{t('exam_selection.qualification_hint')}</Notice>}
+        </SectionCard>
+      )}
 
       <ExamCalendar
         examDates={examDates}
