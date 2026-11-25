@@ -1,16 +1,34 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import { storageService } from '../utils/storage';
 import { apiService } from '../services/api';
 import { FormData, FormStep, Type, Region, ExamName, Exam, ExamDate, PaymentResponse } from '../types';
 
+// Sahifa yangilanganda forma shu bosqichdan davom etadi. useState boshlang'ich qiymatida
+// o'qiladi: effektda o'qilsa, StrictMode (npm start) effektlarni ikki marta ishlatadi va
+// ikkinchi o'qishdan oldin "bosqichni saqlash" effekti 1-bosqichni yozib qo'ygan bo'ladi.
+const savedState = (): { formData: Partial<FormData>; step: FormStep } => {
+  const formData = storageService.getFormData();
+  if (Object.keys(formData).length === 0) {
+    return { formData, step: FormStep.EXAM_SELECTION };
+  }
+  const step = storageService.getCurrentStep();
+  // paymentData saqlanmaydi: to'lov bosqichi tasdiqlashdan qayta ochiladi
+  // (invoice-create shu odam va sanaga mavjud invoice ni qaytaradi)
+  return { formData, step: step === FormStep.PAYMENT ? FormStep.CONFIRMATION : step };
+};
+
 export const useAppState = () => {
   const { t } = useTranslation();
+  // Til almashganda boshlang'ich ma'lumotlar qayta yuklanmasin — t effekt bog'liqligiga kirmaydi
+  const tRef = useRef(t);
+  tRef.current = t;
 
   // State
-  const [currentStep, setCurrentStep] = useState<FormStep>(FormStep.EXAM_SELECTION);
-  const [formData, setFormData] = useState<Partial<FormData>>({});
+  const [initial] = useState(savedState);
+  const [currentStep, setCurrentStep] = useState<FormStep>(initial.step);
+  const [formData, setFormData] = useState<Partial<FormData>>(initial.formData);
   const [paymentData, setPaymentData] = useState<PaymentResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
@@ -22,9 +40,19 @@ export const useAppState = () => {
   const [exams, setExams] = useState<Exam[]>([]);
   const [examDates, setExamDates] = useState<ExamDate[]>([]);
 
-  // Initialize app
+  // Boshlang'ich ma'lumotlar (turlar, hududlar, imtihon nomlari)
   useEffect(() => {
-    initializeApp();
+    Promise.all([apiService.getTypes(), apiService.getRegions(), apiService.getExamNames()])
+      .then(([typesData, regionsData, examNamesData]) => {
+        setTypes(typesData);
+        setRegions(regionsData);
+        setExamNames(examNamesData);
+      })
+      .catch((error) => {
+        console.error('Error loading API data:', error);
+        toast.error(tRef.current('common.error'));
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   // Save form data to session storage
@@ -38,48 +66,6 @@ export const useAppState = () => {
   useEffect(() => {
     storageService.saveCurrentStep(currentStep);
   }, [currentStep]);
-
-  const initializeApp = async () => {
-    try {
-      setLoading(true);
-
-      // Load saved data from session storage
-      const savedFormData = storageService.getFormData();
-      const savedStep = storageService.getCurrentStep();
-
-      if (Object.keys(savedFormData).length > 0) {
-        setFormData(savedFormData);
-        // paymentData saqlanmaydi: to'lov bosqichi tasdiqlashdan qayta ochiladi
-        // (invoice-create shu odam va sanaga mavjud invoice ni qaytaradi)
-        setCurrentStep(savedStep === FormStep.PAYMENT ? FormStep.CONFIRMATION : savedStep);
-      }
-
-      // Load initial API data
-      await loadApiData();
-    } catch (error) {
-      console.error('App initialization error:', error);
-      toast.error(t('common.error'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadApiData = async () => {
-    try {
-      const [typesData, regionsData, examNamesData] = await Promise.all([
-        apiService.getTypes(),
-        apiService.getRegions(),
-        apiService.getExamNames(),
-      ]);
-
-      setTypes(typesData);
-      setRegions(regionsData);
-      setExamNames(examNamesData);
-    } catch (error) {
-      console.error('Error loading API data:', error);
-      toast.error(t('common.error'));
-    }
-  };
 
   const loadExams = async (examNameId: number, typeId?: number) => {
     try {
