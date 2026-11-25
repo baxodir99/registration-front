@@ -34,17 +34,21 @@ const InvoiceSummary: React.FC<InvoiceSummaryProps> = ({
 }) => {
   const { t } = useTranslation();
   const currency = t('payment.currency');
+  // Bepul ariza: hisob raqami backendda soxta (123456789), to'lov muddati ham yo'q
+  const free = paymentData.pay_method === 'free';
 
   return (
     <AsideCard>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.375 }}>
-        <Typography component="span" sx={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', color: modernColors.gray[500] }}>
-          {t('payment.card.invoice_label')}
-        </Typography>
-        <Typography component="span" sx={{ fontSize: '18px', fontWeight: 700, letterSpacing: '0.04em', overflowWrap: 'anywhere' }}>
-          {paymentData.invoice}
-        </Typography>
-      </Box>
+      {!free && (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.375 }}>
+          <Typography component="span" sx={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', color: modernColors.gray[500] }}>
+            {t('payment.card.invoice_label')}
+          </Typography>
+          <Typography component="span" sx={{ fontSize: '18px', fontWeight: 700, letterSpacing: '0.04em', overflowWrap: 'anywhere' }}>
+            {paymentData.invoice}
+          </Typography>
+        </Box>
+      )}
       {!compact && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
           {examLabel && <SummaryRow strong label={t('payment.summary_exam')} value={examLabel} />}
@@ -60,7 +64,7 @@ const InvoiceSummary: React.FC<InvoiceSummaryProps> = ({
         />
       )}
       <TotalRow label={t('payment.card.total_label')} value={`${formatMoney(paymentData.amount)} ${currency}`} />
-      {deadline && (
+      {deadline && !free && (
         <Box sx={{ p: 1.5, borderRadius: '10px', backgroundColor: statusColors.warning.bg, fontSize: '13px', lineHeight: 1.5, color: '#5C3B08' }}>
           {t('payment.deadline_before')} <strong>{deadline}</strong> {t('payment.deadline_after')}
         </Box>

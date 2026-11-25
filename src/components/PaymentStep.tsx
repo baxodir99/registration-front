@@ -12,6 +12,7 @@ import CardStep from './payment/CardStep';
 import OtpStep from './payment/OtpStep';
 import SuccessStep from './payment/SuccessStep';
 import CheckoutRedirectStep from './payment/CheckoutRedirectStep';
+import AcceptedStep from './payment/AcceptedStep';
 
 interface PaymentStepProps extends PaymentDetails {
   paymentData: PaymentResponse;
@@ -52,9 +53,26 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
     originalAmount !== undefined &&
     originalAmount > Number(paymentData.amount);
 
-  // Gateways like Birdarcha / VIA return a pay_url for external checkout.
-  // ATMOS flow returns no pay_url — we collect the card inside the app.
-  if (paymentData.pay_url) {
+  // To'lov yo'lini backend aytadi (pay_method). Ochadigan sahifa bo'lmasa (bepul yoki
+  // billing havola qaytarmagan) hech qayerga yo'naltirmaymiz — kabinetga yuboramiz.
+  // pay_method kelmasa (eski backend) — avvalgidek: pay_url bor -> tashqi sahifa, yo'q -> karta.
+  const method = paymentData.pay_method;
+  const useCard = method ? method === 'atmos' : !paymentData.pay_url;
+
+  if (!useCard && !paymentData.pay_url) {
+    return (
+      <AcceptedStep
+        paymentData={paymentData}
+        originalAmount={originalAmount}
+        hasDiscount={hasDiscount}
+        onNewRegistration={onNewRegistration}
+        finishLabel={finishLabel}
+        {...details}
+      />
+    );
+  }
+
+  if (!useCard) {
     return (
       <CheckoutRedirectStep
         paymentData={paymentData}

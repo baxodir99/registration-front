@@ -182,6 +182,15 @@
     "exam_info_title": "Exam or course information",
     "exam_info_note": "Save this document and bring it with you on the day of the exam or course",
     "new_registration": "New Registration",
+    "accepted": {
+      "title": "Your application has been accepted",
+      "free_lead": "This course is free — no payment is required. Track your status in your personal account.",
+      "no_link_lead": "Your place is reserved. The payment page link has not arrived yet — track payment and status in your personal account.",
+      "invoice_number": "Invoice number",
+      "to_cabinet": "Go to my account",
+      "cabinet_hint": "Sign in with your phone number and an SMS code",
+      "no_link_note": "If you have questions, contact support and give your invoice number."
+    },
     "redirect": {
       "lead_before": "Your seat is reserved. Press the button below to finish paying — the payment page opens",
       "lead_strong": "in a new window",

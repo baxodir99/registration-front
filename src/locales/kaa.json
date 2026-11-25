@@ -182,6 +182,15 @@
     "exam_info_title": "Imtixan yamasa kurs maǵlıwmatları",
     "exam_info_note": "Bul hújjetti saqlań hám imtixan yamasa kurs kúni ózińiz benen alıp barıń",
     "new_registration": "Jańa dizimnen ótiw",
+    "accepted": {
+      "title": "Arzańız qabıl etildi",
+      "free_lead": "Bul kurs biypul — tólem qılıw shárt emes. Jaǵdayıńızdı jeke kabinette baqlap barasız.",
+      "no_link_lead": "Ornıńız bánt etildi. Tólem betiniń siltemesi házirshe kelmedi — tólem hám jaǵdaydı jeke kabinetten baqlań.",
+      "invoice_number": "Invoice nomeri",
+      "to_cabinet": "Kabinetke kiriw",
+      "cabinet_hint": "Kabinetke telefon nomerińiz hám SMS kod penen kiresiz",
+      "no_link_note": "Sorawıńız bolsa járdem xızmetine múráját etiń — invoice nomerin aytıń."
+    },
     "redirect": {
       "lead_before": "Ornıńız bánt etildi. Tólemdi juwmaqlaw ushın tómendegi túymeni basıń — tólem sisteması beti",
       "lead_strong": "jańa aynada",

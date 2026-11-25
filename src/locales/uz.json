@@ -182,6 +182,15 @@
     "exam_info_title": "Imtihon yoki kurs maʼlumotlari",
     "exam_info_note": "Bu hujjatni saqlang va imtihon yoki kurs kunida oʻzingiz bilan olib boring",
     "new_registration": "Yangi roʻyxatdan oʻtish",
+    "accepted": {
+      "title": "Arizangiz qabul qilindi",
+      "free_lead": "Bu kurs bepul — toʻlov qilish shart emas. Holatingizni shaxsiy kabinetda kuzatib borasiz.",
+      "no_link_lead": "Joyingiz band qilindi. Toʻlov sahifasi havolasi hozircha kelmadi — toʻlov va holatni shaxsiy kabinetdan kuzating.",
+      "invoice_number": "Invoice raqami",
+      "to_cabinet": "Kabinetga kirish",
+      "cabinet_hint": "Kabinetga telefon raqamingiz va SMS kod bilan kirasiz",
+      "no_link_note": "Savol boʻlsa yordam xizmatiga murojaat qiling — invoice raqamini ayting."
+    },
     "redirect": {
       "lead_before": "Joyingiz band qilindi. Toʻlovni yakunlash uchun quyidagi tugmani bosing — toʻlov tizimi sahifasi",
       "lead_strong": "yangi oynada",

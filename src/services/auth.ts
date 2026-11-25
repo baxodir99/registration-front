@@ -36,7 +36,7 @@ export interface Registration {
   is_paid: boolean;
   status: RegistrationStatus;
   deadline: string | null;
-  pay_method: 'atmos' | 'billing';
+  pay_method: 'atmos' | 'billing' | 'free';
   info_doc_url: string | null;
   has_result: boolean;
   has_certificate: boolean;
@@ -48,7 +48,7 @@ export interface CabinetPayment {
   exam: string;
   amount: string;
   status: 'paid' | 'pending' | 'cancelled';
-  pay_method: 'atmos' | 'billing';
+  pay_method: 'atmos' | 'billing' | 'free';
 }
 
 export interface Certificate {
@@ -96,7 +96,7 @@ export interface PaymentDetail {
   pay_url: string | null;
   amount: number;
   info_doc: string | null;
-  pay_method: 'atmos' | 'billing';
+  pay_method: 'atmos' | 'billing' | 'free';
   exam: string | null;
   date: string | null;
   deadline: string | null;

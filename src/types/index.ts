@@ -124,7 +124,12 @@ export interface PaymentResponse {
   pay_url: string | null;
   amount: number;
   info_doc?: string | null;
+  // Backend aytadi: free — to'lov shart emas, atmos — saytda karta, billing — tashqi sahifa.
+  // Eski backend yubormasa — avvalgidek faqat pay_url bo'yicha
+  pay_method?: PayMethod;
 }
+
+export type PayMethod = 'atmos' | 'billing' | 'free';
 
 // ATMOS Card Payment Types
 export interface BindCardRequest {
